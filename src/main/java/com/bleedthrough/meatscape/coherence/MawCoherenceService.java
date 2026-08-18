@@ -23,13 +23,24 @@ public final class MawCoherenceService {
     }
 
     public static int set(ServerLevel level, ChunkPos chunkPos, int requestedValue) {
+        return set(level, chunkPos, requestedValue, true);
+    }
+
+    /** Applies routine field diffusion without producing one log line per affected chunk. */
+    public static int addFromRift(ServerLevel level, LevelChunk chunk, int delta) {
+        return set(level, chunk.getPos(), data(chunk).value() + delta, false);
+    }
+
+    private static int set(ServerLevel level, ChunkPos chunkPos, int requestedValue, boolean logChange) {
         LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
         MawCoherenceData data = data(chunk);
         data.setValue(requestedValue);
         CoherenceSyncPayload payload = payload(level, chunkPos, data.value());
         MeatscapeNetwork.sendToTracking(chunk, payload);
-        Meatscape.LOGGER.info("Set Maw Coherence dimension={} chunk={} value={}",
-                level.dimension().location(), chunkPos, data.value());
+        if (logChange) {
+            Meatscape.LOGGER.info("Set Maw Coherence dimension={} chunk={} value={}",
+                    level.dimension().location(), chunkPos, data.value());
+        }
         return data.value();
     }
 

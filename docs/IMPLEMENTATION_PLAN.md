@@ -15,6 +15,7 @@
 - [x] JUnit 最小测试与 Forge GameTest 已建立并通过
 - [x] Phase 0 已达到完成定义（2026-08-18）
 - [x] Phase 1 Maw Coherence 数据 Spike 已达到完成定义（2026-08-18）
+- [x] Phase 2 Rift 抽象数值源 Spike 已达到完成定义（2026-08-18）
 
 ## Phase 0 — 仓库与 Forge 骨架
 
@@ -83,21 +84,30 @@
 
 ### 实现
 
-- 无正式美术的测试 Rift。
-- Rift 唯一 ID、位置、半径、强度、生命周期和空间索引。
-- 仅影响抽象 Maw Coherence 的扩散计算。
-- `/meatscape rift create|remove|inspect` 与全局 pause。
+- [x] 无正式美术的测试 Rift。
+- [x] Rift 唯一 ID、位置、半径、强度、生命周期和空间索引。
+- [x] 仅影响抽象 Maw Coherence 的扩散计算。
+- [x] `/meatscape rift create|remove|inspect` 与全局 pause。
 
 ### 测试
 
-- 单 Rift 扩散、多个 Rift 叠加和边界稳定性。
-- Chunk unload/load、服务器重启和 Rift 删除。
-- 未加载区块只更新抽象值。
-- 多人同步不泄漏全量世界数据。
+- [x] 单 Rift 扩散、多个 Rift 叠加和边界稳定性。
+- [x] Chunk unload/load、服务器重启和 Rift 删除。
+- [x] 未加载区块只更新抽象值。
+- [x] 多人同步不泄漏全量世界数据。
 
 ### 退出条件
 
-运行数小时后数值稳定、无持续内存增长，重启前后结果在规定误差内一致。
+- [x] 运行数小时后数值稳定、无持续内存增长，重启前后结果在规定误差内一致。
+
+### 验证记录（2026-08-18）
+
+- `./gradlew build --stacktrace`：通过；JUnit 覆盖 schema v1 → v2、Rift NBT、空间索引、扩散叠加、边界、生命周期、未加载区块累计和 6 小时模拟。
+- `./gradlew runGameTestServer`：4/4 required tests passed；Rift 扩散／删除测试使用独立 batch，服务器正常保存所有维度并关闭。
+- 未加载区块不被强制加载；只在世界 `SavedData` 中保存维度／区块键和有界数值，区块加载后合并。
+- 持久化回合在重启等价的 NBT 重载后保持 Rift、pause 和 pending coherence 精确一致（误差 0）。
+- 客户端仅接收已有的“维度／区块／Coherence” DTO，不同步 Rift 索引或全量世界数据；双观察者协议测试仍通过。
+- `./gradlew runClient`：Mod、资源和 OpenAL 成功加载到主菜单，随后人工终止开发实例；`libflite.so` 仍是已知可选旁白库提示。
 
 ## Phase 3 — Spike 3：空 Evolution Scheduler
 
