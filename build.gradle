@@ -61,6 +61,7 @@ minecraft {
         // applies to all the run configs below
         configureEach {
             workingDirectory project.file('run')
+            property 'io.netty.native.workdir', project.file('run/natives').absolutePath
 
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
@@ -221,5 +222,8 @@ tasks.register('prepareGameTestStructures', Copy) {
 tasks.configureEach {
     if (name == 'runGameTestServer') {
         dependsOn tasks.named('prepareGameTestStructures')
+    }
+    if (name == 'runServer') {
+        standardInput = System.in
     }
 }

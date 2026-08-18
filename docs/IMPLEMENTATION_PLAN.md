@@ -14,6 +14,7 @@
 - [x] MDK 示例身份已替换为 `meatscape` / `com.bleedthrough.meatscape`
 - [x] JUnit 最小测试与 Forge GameTest 已建立并通过
 - [x] Phase 0 已达到完成定义（2026-08-18）
+- [x] Phase 1 Maw Coherence 数据 Spike 已达到完成定义（2026-08-18）
 
 ## Phase 0 — 仓库与 Forge 骨架
 
@@ -50,23 +51,33 @@
 
 ### 实现
 
-- 世界级 `MeatscapeWorldData`：`schemaVersion`、World Stage 占位值。
-- Chunk 级 `MawCoherenceData`：数值、脏标记、序列化边界。
-- 服务端查询／设置 API 与最小网络同步 DTO。
-- `/meatscape coherence get|set` 和数据检查日志。
-- 实现一次模拟 v0 → v1 迁移。
+- [x] 世界级 `MeatscapeWorldData`：`schemaVersion`、World Stage 占位值。
+- [x] Chunk 级 `MawCoherenceData`：数值、脏标记、序列化边界。
+- [x] 服务端查询／设置 API 与最小网络同步 DTO。
+- [x] `/meatscape coherence get|set` 和数据检查日志。
+- [x] 实现一次模拟 v0 → v1 迁移。
 
 ### 测试
 
-- 新区块默认值。
-- 边界值钳制与非法数据恢复。
-- 保存、卸载、重载和服务器重启。
-- 模拟旧 schema 升级。
-- 两名玩家观察同一区块时同步一致。
+- [x] 新区块默认值。
+- [x] 边界值钳制与非法数据恢复。
+- [x] 保存、卸载、重载和服务器重启。
+- [x] 模拟旧 schema 升级。
+- [x] 两名玩家观察同一区块时同步一致。
 
 ### 退出条件
 
-不修改任何方块；上述测试全部通过，旧 schema 测试夹具可重复执行。
+- [x] 不修改任何方块；上述测试全部通过，旧 schema 测试夹具可重复执行。
+
+### 验证记录（2026-08-18）
+
+- `./gradlew build --stacktrace`：通过；13 个 JUnit 测试执行成功。
+- `./gradlew runGameTestServer --console=plain`：3/3 required tests passed；验证区块 Capability、世界 SavedData 和 dedicated server 加载／保存。
+- 专服重启测试：在 `[0,0]` 设置 47%，正常保存关闭；重启后 `/meatscape coherence get` 仍返回 47%。
+- 同步测试：服务端在 `ChunkWatchEvent.Watch` 时发送权威 DTO，变更时向所有 tracking players 广播；协议测试验证两个独立接收者解码得到完全相同的维度、区块和值。GameTest 的 mock connection 无 Netty channel，不能替代真实网络连接，因此未把 mock 发送失败计为产品缺陷。
+- `./gradlew runClient --console=plain`：网络通道、客户端缓存和退出清理事件成功加载到主菜单。
+- 代码审计未发现任何方块写入调用；Phase 1 只改变抽象数据。
+- Netty 原生运行目录已固定为工作区 `run/natives`，不使用系统临时目录。
 
 ## Phase 2 — Spike 2：Rift 抽象数值源
 
