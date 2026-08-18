@@ -38,7 +38,7 @@ public final class MawCoherenceData {
 
     public CompoundTag serialize() {
         CompoundTag tag = new CompoundTag();
-        tag.putInt(SCHEMA_KEY, DataSchema.CURRENT);
+        tag.putInt(SCHEMA_KEY, DataSchema.COHERENCE_CURRENT);
         tag.putInt(VALUE_KEY, value);
         return tag;
     }
