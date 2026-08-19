@@ -2,6 +2,7 @@ package com.bleedthrough.meatscape;
 
 import com.bleedthrough.meatscape.core.config.MeatscapeConfig;
 import com.bleedthrough.meatscape.core.network.MeatscapeNetwork;
+import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -15,6 +16,7 @@ public final class Meatscape {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public Meatscape(FMLJavaModLoadingContext context) {
+        MeatscapeBlocks.register(context.getModEventBus());
         context.registerConfig(ModConfig.Type.COMMON, MeatscapeConfig.SPEC);
         MeatscapeNetwork.register();
         LOGGER.info("Initializing Meatscape core");

@@ -147,28 +147,39 @@
 
 ### 实现顺序
 
-1. `#meatscape:natural_replaceable` 与绝对保护 tags。
-2. Chunk terrain trust：Trusted、Player-Modified／Untrusted、Legacy／Unknown。
-3. 仅为候选材料记录紧凑 provenance。
-4. Base Anchor／Protected Settlement。
-5. 管理员 `protect`、`trust`、`inspect`。
-6. 少量 placeholder 转换方块和可移除 attachment fallback。
-7. 通用 `markUntrusted(region)` 接口；Create 实际接入放在独立测试配置。
+1. [x] `#meatscape:natural_replaceable` 与绝对保护 tags。
+2. [x] Chunk terrain trust：Trusted、Player-Modified／Untrusted、Legacy／Unknown。
+3. [x] 仅为候选材料记录紧凑 provenance。
+4. [x] Base Anchor／Protected Settlement。
+5. [x] 管理员 `protect`、`trust`、`inspect`。
+6. [x] 少量 placeholder 转换方块和可移除 attachment fallback。
+7. [x] 通用 `markUntrusted(region)` 接口；Create 实际接入放在独立测试配置。
 
 ### 必测场景
 
-- Stone、Logs、Dirt、Ice 玩家建筑。
-- 容器、机器和任意 BlockEntity。
-- The Bleeding 前建立的 Base Anchor。
-- 活塞移动和模拟批量移动落地。
-- Create contraption 的可选集成测试。
-- 旧存档未知区块。
-- 管理员 trust／protect 的覆盖优先级。
-- 方块移除后的 provenance 清理。
+- [x] Stone、Logs、Dirt、Ice 玩家建筑。
+- [x] 容器、机器和任意 BlockEntity。
+- [x] The Bleeding 前建立的 Base Anchor。
+- [x] 活塞移动和模拟批量移动落地。
+- [x] Create contraption 的可选集成配置（通过无依赖的通用区域接口）。
+- [x] 旧存档未知区块。
+- [x] 管理员 trust／protect 的覆盖优先级。
+- [x] 方块移除后的 provenance 清理。
 
 ### 退出条件
 
-受保护区域无主体破坏；可信自然地形能有限转换；未知区块正确回退为 attachment；存档增长经过记录并可接受。
+- [x] 受保护区域无主体破坏；可信自然地形能有限转换；未知区块正确回退为 attachment；存档增长经过记录并可接受。
+
+### 验证记录（2026-08-19）
+
+- Chunk Safety Capability 独立于 Maw Coherence；只有服务端首次生成区块经 `ChunkEvent.Load#isNewChunk()` 标为 Trusted，旧存档与缺少 schema 的区块保持 Unknown。
+- provenance 仅保存自然候选位置的 section 位图，不记录玩家 UUID、时间戳或逐方块 CompoundTag；单位置序列化 fixture 小于 300 字符，删除后空 section 会被回收。
+- 绝对保护（包括任意 BlockEntity）优先于管理员 trust；Protected Settlement 只允许放置可移除覆膜，不替换主体。
+- Base Anchor 默认保护半径 32；保护区进入世界 schema v3 并有 v2 迁移和往返测试。
+- 玩家放置／破坏、活塞移动和通用 `markUntrusted(min,max)` 统一写入 provenance；Create 仅提供可关闭的无依赖兼容入口，不向核心引入其类型。
+- `./gradlew clean build --console=plain`：通过；37 个 JUnit 测试无失败，产出可重混淆 jar。
+- `./gradlew runGameTestServer --console=plain`：8/8 required tests passed；覆盖可信自然转换、Stone／Logs／Dirt／Ice 玩家结构、BlockEntity、保护区、旧区块和模拟批量移动。
+- `./gradlew runClient --console=plain`：注册表、方块模型与材质图集加载到主菜单后人工终止；`runServer` 正常进入 `Done` 并加载 schema v3。
 
 ## Phase 5 — Spike 5：Rollback／Severance 原型
 

@@ -18,6 +18,10 @@ public final class MeatscapeConfig {
             .comment("Maximum candidate positions selected for one Rift per server tick.")
             .defineInRange("evolution.perRiftTickBudget", 8, 1, 1024);
 
+    public static final ForgeConfigSpec.BooleanValue CREATE_BULK_MOVEMENT_SAFETY = BUILDER
+            .comment("Enable the dependency-free provenance hook intended for optional Create moving structures.")
+            .define("integrations.createBulkMovementSafety", true);
+
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private MeatscapeConfig() {

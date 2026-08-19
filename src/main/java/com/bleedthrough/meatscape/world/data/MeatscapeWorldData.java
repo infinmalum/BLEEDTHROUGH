@@ -5,6 +5,7 @@ import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
 import com.bleedthrough.meatscape.coherence.rift.RiftSpatialIndex;
 import com.bleedthrough.meatscape.coherence.data.MawCoherenceData;
 import com.bleedthrough.meatscape.core.migration.DataSchema;
+import com.bleedthrough.meatscape.safety.ProtectedRegion;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ public final class MeatscapeWorldData extends SavedData {
     static final String RIFTS_KEY = "Rifts";
     static final String PENDING_KEY = "PendingCoherence";
     static final String VALUE_KEY = "Value";
+    static final String PROTECTED_REGIONS_KEY = "ProtectedRegions";
 
     private final int schemaVersion;
     private WorldStage worldStage;
@@ -33,9 +35,10 @@ public final class MeatscapeWorldData extends SavedData {
     private final Map<UUID, RiftRecord> rifts;
     private final Map<DimensionChunkKey, Integer> pendingCoherence;
     private final RiftSpatialIndex spatialIndex;
+    private final Map<UUID, ProtectedRegion> protectedRegions;
 
     public MeatscapeWorldData() {
-        this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of());
+        this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of(), Map.of());
         setDirty();
     }
 
@@ -44,7 +47,8 @@ public final class MeatscapeWorldData extends SavedData {
             WorldStage worldStage,
             boolean paused,
             Map<UUID, RiftRecord> rifts,
-            Map<DimensionChunkKey, Integer> pendingCoherence) {
+            Map<DimensionChunkKey, Integer> pendingCoherence,
+            Map<UUID, ProtectedRegion> protectedRegions) {
         this.schemaVersion = schemaVersion;
         this.worldStage = worldStage;
         this.paused = paused;
@@ -52,6 +56,7 @@ public final class MeatscapeWorldData extends SavedData {
         this.pendingCoherence = new LinkedHashMap<>(pendingCoherence);
         this.spatialIndex = new RiftSpatialIndex();
         this.spatialIndex.rebuild(this.rifts.values());
+        this.protectedRegions = new LinkedHashMap<>(protectedRegions);
     }
 
     public static MeatscapeWorldData get(MinecraftServer server) {
@@ -78,8 +83,13 @@ public final class MeatscapeWorldData extends SavedData {
                 pending.put(DimensionChunkKey.load(entry), value);
             }
         }
+        Map<UUID, ProtectedRegion> regions = new LinkedHashMap<>();
+        for (Tag regionTag : tag.getList(PROTECTED_REGIONS_KEY, Tag.TAG_COMPOUND)) {
+            ProtectedRegion region = ProtectedRegion.load((CompoundTag) regionTag);
+            regions.put(region.id(), region);
+        }
         return new MeatscapeWorldData(
-                DataSchema.WORLD_CURRENT, stage, tag.getBoolean(PAUSED_KEY), rifts, pending);
+                DataSchema.WORLD_CURRENT, stage, tag.getBoolean(PAUSED_KEY), rifts, pending, regions);
     }
 
     @Override
@@ -97,6 +107,9 @@ public final class MeatscapeWorldData extends SavedData {
             pendingTags.add(entry);
         });
         tag.put(PENDING_KEY, pendingTags);
+        ListTag regionTags = new ListTag();
+        protectedRegions.values().stream().map(ProtectedRegion::save).forEach(regionTags::add);
+        tag.put(PROTECTED_REGIONS_KEY, regionTags);
         return tag;
     }
 
@@ -180,6 +193,31 @@ public final class MeatscapeWorldData extends SavedData {
 
     public int pendingChunkCount() {
         return pendingCoherence.size();
+    }
+
+    public Collection<ProtectedRegion> protectedRegions() {
+        return List.copyOf(protectedRegions.values());
+    }
+
+    public void addProtectedRegion(ProtectedRegion region) {
+        protectedRegions.put(region.id(), region);
+        setDirty();
+    }
+
+    public boolean removeProtectedRegion(UUID id) {
+        if (protectedRegions.remove(id) == null) return false;
+        setDirty();
+        return true;
+    }
+
+    public boolean removeAnchorRegion(net.minecraft.resources.ResourceLocation dimension, net.minecraft.core.BlockPos anchor) {
+        boolean removed = protectedRegions.values().removeIf(region -> dimension.equals(region.dimension()) && anchor.equals(region.anchor()));
+        if (removed) setDirty();
+        return removed;
+    }
+
+    public boolean isProtected(net.minecraft.resources.ResourceLocation dimension, net.minecraft.core.BlockPos pos) {
+        return protectedRegions.values().stream().anyMatch(region -> region.contains(dimension, pos));
     }
 
     private static int clamp(int value) {
