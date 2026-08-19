@@ -5,6 +5,9 @@ import com.bleedthrough.meatscape.coherence.MawCoherenceService;
 import com.bleedthrough.meatscape.coherence.evolution.EvolutionSchedulerEvents;
 import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
 import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
+import com.bleedthrough.meatscape.safety.ChunkSafetyService;
+import com.bleedthrough.meatscape.safety.ProtectedRegion;
+import com.bleedthrough.meatscape.safety.TerrainTrust;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -73,6 +76,16 @@ public final class MeatscapeCommands {
                         .then(Commands.argument("paused", BoolArgumentType.bool())
                                 .executes(context -> setPause(
                                         context.getSource(), BoolArgumentType.getBool(context, "paused")))))
+                .then(Commands.literal("trust")
+                        .executes(context -> setTrust(context.getSource(), TerrainTrust.TRUSTED)))
+                .then(Commands.literal("untrust")
+                        .executes(context -> setTrust(context.getSource(), TerrainTrust.UNTRUSTED)))
+                .then(Commands.literal("protect")
+                        .then(Commands.argument("radius", IntegerArgumentType.integer(1, 512))
+                                .executes(context -> protect(context.getSource(),
+                                        IntegerArgumentType.getInteger(context, "radius")))))
+                .then(Commands.literal("inspect")
+                        .executes(context -> inspectSafety(context.getSource())))
                 .then(Commands.literal("debug")
                         .then(Commands.literal("stats")
                                 .executes(context -> debugStats(context.getSource())))));
@@ -175,6 +188,34 @@ public final class MeatscapeCommands {
                 + " queue=" + stats.queueLength()
                 + " tickMs=" + String.format(java.util.Locale.ROOT, "%.3f", millis)
                 + " skipped=" + stats.skipped()), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setTrust(CommandSourceStack source, TerrainTrust trust) {
+        ChunkPos pos = sourceChunk(source);
+        ChunkSafetyService.setTrust(source.getLevel(), pos, trust);
+        source.sendSuccess(() -> Component.literal("Terrain trust " + pos + " set to " + trust), true);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int protect(CommandSourceStack source, int radius) {
+        BlockPos center = BlockPos.containing(source.getPosition());
+        ProtectedRegion region = new ProtectedRegion(UUID.randomUUID(), source.getLevel().dimension().location(),
+                center.offset(-radius, -radius, -radius), center.offset(radius, radius, radius), null);
+        MeatscapeWorldData.get(source.getServer()).addProtectedRegion(region);
+        source.sendSuccess(() -> Component.literal("Protected region " + region.id() + " radius=" + radius), true);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int inspectSafety(CommandSourceStack source) {
+        BlockPos pos = BlockPos.containing(source.getPosition());
+        var data = ChunkSafetyService.get(source.getLevel(), pos);
+        boolean protectedHere = MeatscapeWorldData.get(source.getServer())
+                .isProtected(source.getLevel().dimension().location(), pos);
+        source.sendSuccess(() -> Component.literal("Safety: trust=" + data.trust()
+                + " modifiedPositions=" + data.modifiedCount()
+                + " positionModified=" + data.isModified(pos)
+                + " protected=" + protectedHere), false);
         return Command.SINGLE_SUCCESS;
     }
 }

@@ -7,6 +7,7 @@ import com.bleedthrough.meatscape.coherence.rift.RiftFieldCalculator;
 import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
 import com.bleedthrough.meatscape.core.config.MeatscapeConfig;
 import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
+import com.bleedthrough.meatscape.safety.SafeEvolutionConverter;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -58,7 +59,11 @@ public final class EvolutionSchedulerEvents {
         }
         MinecraftServer server = event.getServer();
         MeatscapeWorldData data = MeatscapeWorldData.get(server);
-        get(server).tick(data.isPaused(), server.overworld().getGameTime(), environment(server, data));
+        var candidates = get(server).tick(data.isPaused(), server.overworld().getGameTime(), environment(server, data));
+        for (EvolutionCandidate candidate : candidates) {
+            ServerLevel level = level(server, candidate.chunk().dimension());
+            if (level != null) SafeEvolutionConverter.apply(level, data, candidate);
+        }
     }
 
     @SubscribeEvent

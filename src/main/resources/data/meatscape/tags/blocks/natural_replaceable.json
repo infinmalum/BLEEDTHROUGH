@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:stone",
+    "minecraft:dirt",
+    "minecraft:grass_block",
+    "#minecraft:logs",
+    "minecraft:ice",
+    "minecraft:packed_ice"
+  ]
+}

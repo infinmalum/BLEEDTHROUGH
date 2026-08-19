@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.bleedthrough.meatscape.core.migration.DataSchema;
 import com.bleedthrough.meatscape.coherence.rift.DimensionChunkKey;
 import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
+import com.bleedthrough.meatscape.safety.ProtectedRegion;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 class MeatscapeWorldDataTest {
     @Test
-    void versionZeroFixtureMigratesToDormantVersionTwo() {
+    void versionZeroFixtureMigratesToCurrentDormantSchema() {
         MeatscapeWorldData migrated = MeatscapeWorldData.load(new CompoundTag());
 
         assertEquals(DataSchema.WORLD_CURRENT, migrated.schemaVersion());
@@ -57,11 +58,28 @@ class MeatscapeWorldDataTest {
 
         MeatscapeWorldData migrated = MeatscapeWorldData.load(fixture);
 
-        assertEquals(DataSchema.VERSION_2, migrated.schemaVersion());
+        assertEquals(DataSchema.WORLD_CURRENT, migrated.schemaVersion());
         assertEquals(WorldStage.ADAPTATION, migrated.worldStage());
         assertFalse(migrated.isPaused());
         assertTrue(migrated.rifts().isEmpty());
         assertEquals(0, migrated.pendingChunkCount());
+    }
+
+    @Test void versionTwoAddsEmptyProtectionAndRegionsRoundTrip() {
+        CompoundTag old = new CompoundTag();
+        old.putInt(MeatscapeWorldData.SCHEMA_KEY, DataSchema.VERSION_2);
+        assertTrue(MeatscapeWorldData.load(old).protectedRegions().isEmpty());
+
+        MeatscapeWorldData data = new MeatscapeWorldData();
+        ResourceLocation dimension = ResourceLocation.withDefaultNamespace("overworld");
+        BlockPos anchor = new BlockPos(4, 70, 9);
+        ProtectedRegion region = new ProtectedRegion(UUID.randomUUID(), dimension,
+                anchor.offset(-8, -8, -8), anchor.offset(8, 8, 8), anchor);
+        data.addProtectedRegion(region);
+        MeatscapeWorldData restored = MeatscapeWorldData.load(data.save(new CompoundTag()));
+        assertTrue(restored.isProtected(dimension, anchor.offset(5, 0, 0)));
+        assertTrue(restored.removeAnchorRegion(dimension, anchor));
+        assertFalse(restored.isProtected(dimension, anchor));
     }
 
     @Test
