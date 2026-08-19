@@ -2,6 +2,7 @@ package com.bleedthrough.meatscape.debug;
 
 import com.bleedthrough.meatscape.Meatscape;
 import com.bleedthrough.meatscape.coherence.MawCoherenceService;
+import com.bleedthrough.meatscape.coherence.evolution.EvolutionSchedulerEvents;
 import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
 import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
 import com.mojang.brigadier.CommandDispatcher;
@@ -71,7 +72,10 @@ public final class MeatscapeCommands {
                         .executes(context -> inspectPause(context.getSource()))
                         .then(Commands.argument("paused", BoolArgumentType.bool())
                                 .executes(context -> setPause(
-                                        context.getSource(), BoolArgumentType.getBool(context, "paused"))))));
+                                        context.getSource(), BoolArgumentType.getBool(context, "paused")))))
+                .then(Commands.literal("debug")
+                        .then(Commands.literal("stats")
+                                .executes(context -> debugStats(context.getSource())))));
     }
 
     private static int get(CommandSourceStack source) {
@@ -104,6 +108,7 @@ public final class MeatscapeCommands {
                 source.getLevel().getGameTime(),
                 lifetimeTicks);
         MeatscapeWorldData.get(source.getServer()).addRift(rift);
+        EvolutionSchedulerEvents.enqueueRift(source.getServer(), rift);
         source.sendSuccess(() -> Component.literal("Created Rift " + rift.id()), true);
         Meatscape.LOGGER.info("Created Rift id={} dimension={} position={} radius={} strength={} lifetime={}",
                 rift.id(), rift.dimension(), rift.position(), rift.radius(), rift.strength(), rift.lifetimeTicks());
@@ -159,5 +164,17 @@ public final class MeatscapeCommands {
             source.sendFailure(Component.literal("Invalid Rift UUID: " + text));
             return null;
         }
+    }
+
+    private static int debugStats(CommandSourceStack source) {
+        var stats = EvolutionSchedulerEvents.get(source.getServer()).stats();
+        double millis = stats.lastTickNanos() / 1_000_000.0D;
+        source.sendSuccess(() -> Component.literal("Evolution Scheduler: processed="
+                + stats.lastTickProcessed()
+                + " total=" + stats.totalProcessed()
+                + " queue=" + stats.queueLength()
+                + " tickMs=" + String.format(java.util.Locale.ROOT, "%.3f", millis)
+                + " skipped=" + stats.skipped()), false);
+        return Command.SINGLE_SUCCESS;
     }
 }

@@ -16,6 +16,7 @@
 - [x] Phase 0 已达到完成定义（2026-08-18）
 - [x] Phase 1 Maw Coherence 数据 Spike 已达到完成定义（2026-08-18）
 - [x] Phase 2 Rift 抽象数值源 Spike 已达到完成定义（2026-08-18）
+- [x] Phase 3 空 Evolution Scheduler Spike 已达到完成定义（2026-08-19）
 
 ## Phase 0 — 仓库与 Forge 骨架
 
@@ -113,22 +114,34 @@
 
 ### 实现
 
-- 全局与单 Rift tick budget。
-- 活跃区块队列、候选采样器和 chunk 生命周期处理。
-- 第一版只记录“本 tick 将处理的位置”，不替换方块。
-- 队列可重建；避免持久化大量瞬态位置。
-- `/meatscape debug stats` 输出处理量、队列长度、耗时和跳过原因。
+- [x] 全局与单 Rift tick budget。
+- [x] 活跃区块队列、候选采样器和 chunk 生命周期处理。
+- [x] 第一版只记录“本 tick 将处理的位置”，不替换方块。
+- [x] 队列可重建；避免持久化大量瞬态位置。
+- [x] `/meatscape debug stats` 输出处理量、队列长度、耗时和跳过原因。
 
 ### 测试
 
-- 大量 Rift 下预算不被突破。
-- 卸载区块不会保留强引用。
-- 暂停、恢复、重启和队列重建。
-- 玩家移动导致区块快速装卸时无重复风暴。
+- [x] 大量 Rift 下预算不被突破。
+- [x] 卸载区块不会保留强引用。
+- [x] 暂停、恢复、重启和队列重建。
+- [x] 玩家移动导致区块快速装卸时无重复风暴。
 
 ### 退出条件
 
-调度器能在测试负载下保持服务器 tick 可控；没有方块变化和不可回收引用。
+- [x] 调度器能在测试负载下保持服务器 tick 可控；没有方块变化和不可回收引用。
+
+### 验证记录（2026-08-19）
+
+- 默认预算为全局 64 个候选位置／server tick、单 Rift 8 个，可在 common config 中调整。
+- `./gradlew build runGameTestServer --stacktrace`：通过；30 个 JUnit 测试无失败，Forge GameTest 5/5 required tests passed。
+- 压力测试为 10,000 个 Rift 任务连续运行 200 tick，每 tick 从未突破 64 的全局预算，队列长度保持稳定。
+- 队列仅持有 Rift UUID、维度 ID 和打包的 chunk 坐标；`ChunkEvent.Unload` 立即移除对应任务，server stop 清空并移除调度器实例。
+- 重启不序列化瞬态队列；任务规划器从持久化 Rift 与已加载区块确定性重建，并有独立测试。
+- 10,000 次重复区块装载入队最终只保留 1 个任务；暂停不消费队列，恢复后继续轮转。
+- GameTest 验证真实服务端能记录候选位置且不修改方块；代码审计未发现任何方块写入 API。
+- `/meatscape debug stats` 输出上一 tick 处理量、累计处理量、队列长度、耗时与分类跳过计数。
+- `./gradlew runClient`：新配置、事件订阅和命令注册成功加载到主菜单，随后人工终止开发实例。
 
 ## Phase 4 — Spike 4：Provenance 与安全转换
 

@@ -2,6 +2,7 @@ package com.bleedthrough.meatscape.gametest;
 
 import com.bleedthrough.meatscape.Meatscape;
 import com.bleedthrough.meatscape.coherence.MawCoherenceService;
+import com.bleedthrough.meatscape.coherence.evolution.EvolutionSchedulerEvents;
 import com.bleedthrough.meatscape.coherence.rift.RiftFieldEvents;
 import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
 import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
@@ -67,5 +68,41 @@ public final class MeatscapeGameTests {
         helper.assertTrue(MawCoherenceService.get(chunk) == diffused, "Deleted Rift continued diffusing");
         MawCoherenceService.set(level, chunk.getPos(), original);
         helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "evolutionScheduler", timeoutTicks = 40)
+    public static void evolutionSchedulerRecordsCandidatesWithoutChangingBlocks(GameTestHelper helper) {
+        var level = helper.getLevel();
+        BlockPos observed = helper.absolutePos(BlockPos.ZERO);
+        var originalState = level.getBlockState(observed);
+        var chunk = level.getChunkAt(observed);
+        int originalCoherence = MawCoherenceService.get(chunk);
+        MeatscapeWorldData data = MeatscapeWorldData.get(level.getServer());
+        RiftRecord rift = new RiftRecord(
+                UUID.randomUUID(),
+                level.dimension().location(),
+                chunk.getPos().getMiddleBlockPosition(64),
+                RiftRecord.MIN_RADIUS,
+                100,
+                level.getGameTime(),
+                RiftRecord.PERMANENT);
+        MawCoherenceService.set(level, chunk.getPos(), 50);
+        data.addRift(rift);
+        var scheduler = EvolutionSchedulerEvents.get(level.getServer());
+        long processedBefore = scheduler.stats().totalProcessed();
+        EvolutionSchedulerEvents.enqueueRift(level.getServer(), rift);
+
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(
+                    scheduler.stats().totalProcessed() > processedBefore,
+                    "Evolution Scheduler did not record a candidate");
+            helper.assertTrue(
+                    level.getBlockState(observed).equals(originalState),
+                    "Empty Evolution Scheduler changed a block");
+            data.removeRift(rift.id());
+            scheduler.clear();
+            MawCoherenceService.set(level, chunk.getPos(), originalCoherence);
+            helper.succeed();
+        });
     }
 }
