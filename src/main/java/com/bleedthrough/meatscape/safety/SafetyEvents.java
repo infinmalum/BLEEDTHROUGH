@@ -20,6 +20,7 @@ public final class SafetyEvents {
     @SubscribeEvent public static void placed(BlockEvent.EntityPlaceEvent event) {
         if (!(event.getLevel() instanceof ServerLevel level)) return;
         BlockPos pos = event.getPos();
+        if (level.hasChunkAt(pos)) ChunkSafetyService.get(level, pos).clearRestoration(pos);
         ProvenanceService.markModified(level, pos, event.getPlacedBlock());
         if (event.getPlacedBlock().is(MeatscapeBlocks.BASE_ANCHOR.get())) {
             String key = level.dimension().location() + ":" + pos.asLong();
@@ -33,7 +34,10 @@ public final class SafetyEvents {
     @SubscribeEvent public static void broken(BlockEvent.BreakEvent event) {
         if (!(event.getLevel() instanceof ServerLevel level)) return;
         BlockPos pos = event.getPos();
-        if (level.hasChunkAt(pos)) ChunkSafetyService.get(level, pos).clearModified(pos);
+        if (level.hasChunkAt(pos)) {
+            ChunkSafetyService.get(level, pos).clearModified(pos);
+            ChunkSafetyService.get(level, pos).clearRestoration(pos);
+        }
         if (event.getState().is(MeatscapeBlocks.BASE_ANCHOR.get())) {
             MeatscapeWorldData.get(level.getServer()).removeAnchorRegion(level.dimension().location(), pos);
         }

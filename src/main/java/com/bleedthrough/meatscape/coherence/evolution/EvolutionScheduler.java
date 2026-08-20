@@ -53,6 +53,11 @@ public final class EvolutionScheduler {
     }
 
     public List<EvolutionCandidate> tick(boolean paused, long gameTime, EvolutionEnvironment environment) {
+        return tick(paused, gameTime, environment, globalBudget);
+    }
+
+    public List<EvolutionCandidate> tick(
+            boolean paused, long gameTime, EvolutionEnvironment environment, int availableBudget) {
         long started = System.nanoTime();
         ticks++;
         if (paused) {
@@ -63,9 +68,10 @@ public final class EvolutionScheduler {
         }
 
         int tasksAtStart = queue.size();
-        List<EvolutionCandidate> candidates = new ArrayList<>(Math.min(globalBudget, tasksAtStart));
+        int tickBudget = Math.max(0, Math.min(globalBudget, availableBudget));
+        List<EvolutionCandidate> candidates = new ArrayList<>(Math.min(tickBudget, tasksAtStart));
         Map<UUID, Integer> perRift = new HashMap<>();
-        for (int visited = 0; visited < tasksAtStart && candidates.size() < globalBudget; visited++) {
+        for (int visited = 0; visited < tasksAtStart && candidates.size() < tickBudget; visited++) {
             EvolutionTask task = poll();
             if (!environment.riftExists(task.riftId())) {
                 skip(EvolutionSkipReason.RIFT_MISSING);

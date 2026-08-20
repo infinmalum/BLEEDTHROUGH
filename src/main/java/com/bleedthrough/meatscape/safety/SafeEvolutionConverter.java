@@ -3,6 +3,7 @@ package com.bleedthrough.meatscape.safety;
 import com.bleedthrough.meatscape.coherence.evolution.EvolutionCandidate;
 import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
 import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
+import com.bleedthrough.meatscape.coherence.rollback.RestorationSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
@@ -22,7 +23,9 @@ public final class SafeEvolutionConverter {
                 world.isProtected(level.dimension().location(), target),
                 state.is(MeatscapeBlockTags.NATURAL_REPLACEABLE), safety.trust(), safety.isModified(target));
         if (decision == ConversionDecision.DESTRUCTIVE) {
-            level.setBlock(target, MeatscapeBlocks.CHANGED_STONE.get().defaultBlockState(), Block.UPDATE_ALL);
+            if (level.setBlock(target, MeatscapeBlocks.CHANGED_STONE.get().defaultBlockState(), Block.UPDATE_ALL)) {
+                safety.recordRestoration(target, RestorationSource.classify(state));
+            }
         } else if (decision == ConversionDecision.ATTACHMENT) {
             placeAttachment(level, target);
         }
@@ -33,7 +36,9 @@ public final class SafeEvolutionConverter {
         BlockPos[] candidates = { surface.above(), surface.north(), surface.south(), surface.east(), surface.west() };
         for (BlockPos pos : candidates) {
             if (level.hasChunkAt(pos) && level.getBlockState(pos).isAir()) {
-                level.setBlock(pos, MeatscapeBlocks.DERMAL_FILM.get().defaultBlockState(), Block.UPDATE_ALL);
+                if (level.setBlock(pos, MeatscapeBlocks.DERMAL_FILM.get().defaultBlockState(), Block.UPDATE_ALL)) {
+                    ChunkSafetyService.get(level, pos).recordRestoration(pos, RestorationSource.ATTACHMENT);
+                }
                 return;
             }
         }
