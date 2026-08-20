@@ -5,4 +5,5 @@ src/generated/**/.cache/cache text eol=lf
 src/generated/**/*.json text eol=lf
 *.gradle text eol=lf
 *.md text eol=lf
-*.bat text eol=crlf
+# The checked-in Gradle batch wrapper already uses CRLF; preserve its bytes.
+*.bat -text

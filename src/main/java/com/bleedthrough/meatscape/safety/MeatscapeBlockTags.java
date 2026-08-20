@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.Block;
 public final class MeatscapeBlockTags {
     public static final TagKey<Block> NATURAL_REPLACEABLE = tag("natural_replaceable");
     public static final TagKey<Block> ABSOLUTE_PROTECTED = tag("absolute_protected");
+    public static final TagKey<Block> ROLLBACK_PERMANENT = tag("rollback_permanent");
     private MeatscapeBlockTags() { }
     private static TagKey<Block> tag(String path) {
         return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Meatscape.MOD_ID, path));
