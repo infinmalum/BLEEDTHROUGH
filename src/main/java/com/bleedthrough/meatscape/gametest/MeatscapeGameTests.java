@@ -16,6 +16,12 @@ import com.bleedthrough.meatscape.safety.TerrainTrust;
 import com.bleedthrough.meatscape.coherence.evolution.EvolutionCandidate;
 import com.bleedthrough.meatscape.coherence.rift.DimensionChunkKey;
 import net.minecraft.world.level.block.Blocks;
+import com.bleedthrough.meatscape.coherence.rollback.RestorationSource;
+import com.bleedthrough.meatscape.coherence.rollback.RollbackJob;
+import com.bleedthrough.meatscape.coherence.rollback.RollbackResult;
+import com.bleedthrough.meatscape.coherence.rollback.RollbackScheduler;
+import com.bleedthrough.meatscape.coherence.rollback.RollbackService;
+import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -183,5 +189,91 @@ public final class MeatscapeGameTests {
     private static EvolutionCandidate candidate(net.minecraft.server.level.ServerLevel level, BlockPos surface) {
         return new EvolutionCandidate(UUID.randomUUID(),
                 new DimensionChunkKey(level.dimension().location(), level.getChunkAt(surface).getPos()), surface);
+    }
+
+    @GameTest(template = "empty", batch = "phase5Rollback")
+    public static void forwardConversionAndRollbackRepeatWithoutSnapshot(GameTestHelper helper) {
+        var level = helper.getLevel();
+        BlockPos target = helper.absolutePos(new BlockPos(1, 1, 1));
+        var safety = ChunkSafetyService.get(level, target);
+        for (int cycle = 0; cycle < 2; cycle++) {
+            level.setBlockAndUpdate(target, Blocks.DIRT.defaultBlockState());
+            safety.setTrust(TerrainTrust.TRUSTED);
+            safety.clearModified(target);
+            safety.clearRestoration(target);
+            helper.assertTrue(SafeEvolutionConverter.apply(level, MeatscapeWorldData.get(level.getServer()),
+                    candidate(level, target.above())) == ConversionDecision.DESTRUCTIVE, "forward conversion failed");
+            helper.assertTrue(safety.restorationSource(target) == RestorationSource.SOIL, "coarse source was not recorded");
+            helper.assertTrue(RollbackService.inspectOrRestore(level, target, true) == RollbackResult.WOULD_RESTORE,
+                    "dry-run did not find restorable terrain");
+            helper.assertTrue(level.getBlockState(target).is(MeatscapeBlocks.CHANGED_STONE.get()), "dry-run changed terrain");
+            helper.assertTrue(RollbackService.inspectOrRestore(level, target, false) == RollbackResult.RESTORED,
+                    "rollback did not restore terrain");
+            helper.assertTrue(level.getBlockState(target).is(Blocks.DIRT), "source category restored wrong terrain");
+            helper.assertTrue(safety.restorationSource(target) == null, "restoration record was not cleaned");
+        }
+
+        safety.setTrust(TerrainTrust.UNKNOWN);
+        BlockPos attachment = target.above();
+        level.setBlockAndUpdate(attachment, Blocks.AIR.defaultBlockState());
+        helper.assertTrue(SafeEvolutionConverter.apply(level, MeatscapeWorldData.get(level.getServer()),
+                candidate(level, attachment)) == ConversionDecision.ATTACHMENT, "attachment fallback was not selected");
+        helper.assertTrue(ChunkSafetyService.get(level, attachment).restorationSource(attachment)
+                == RestorationSource.ATTACHMENT, "attachment source was not recorded");
+        helper.assertTrue(RollbackService.inspectOrRestore(level, attachment, false) == RollbackResult.RESTORED,
+                "attachment rollback failed");
+        helper.assertTrue(level.getBlockState(attachment).isAir(), "attachment did not restore to air");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase5Rollback")
+    public static void playerOverridesAndPermanentBlocksAreNeverOverwritten(GameTestHelper helper) {
+        var level = helper.getLevel();
+        BlockPos playerPos = helper.absolutePos(new BlockPos(1, 1, 1));
+        var safety = ChunkSafetyService.get(level, playerPos);
+        safety.recordRestoration(playerPos, RestorationSource.STONE);
+        level.setBlockAndUpdate(playerPos, Blocks.OAK_PLANKS.defaultBlockState());
+        helper.assertTrue(RollbackService.inspectOrRestore(level, playerPos, false) == RollbackResult.PLAYER_OVERRIDE,
+                "player override was not detected");
+        helper.assertTrue(level.getBlockState(playerPos).is(Blocks.OAK_PLANKS), "player block was overwritten");
+
+        BlockPos permanentPos = helper.absolutePos(new BlockPos(2, 1, 1));
+        level.setBlockAndUpdate(permanentPos, MeatscapeBlocks.BASE_ANCHOR.get().defaultBlockState());
+        ChunkSafetyService.get(level, permanentPos).recordRestoration(permanentPos, RestorationSource.STONE);
+        helper.assertTrue(RollbackService.inspectOrRestore(level, permanentPos, false) == RollbackResult.PERMANENT,
+                "permanent content was eligible for rollback");
+        helper.assertTrue(level.getBlockState(permanentPos).is(MeatscapeBlocks.BASE_ANCHOR.get()),
+                "permanent content was overwritten");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase5Rollback")
+    public static void rollbackRateIsBoundedAndUnloadedChunkDoesNotLoad(GameTestHelper helper) {
+        var level = helper.getLevel();
+        MeatscapeWorldData data = MeatscapeWorldData.get(level.getServer());
+        BlockPos first = helper.absolutePos(new BlockPos(1, 1, 1));
+        BlockPos second = first.east();
+        for (BlockPos pos : new BlockPos[] { first, second }) {
+            level.setBlockAndUpdate(pos, MeatscapeBlocks.CHANGED_STONE.get().defaultBlockState());
+            ChunkSafetyService.get(level, pos).recordRestoration(pos, RestorationSource.STONE);
+        }
+        RollbackJob bounded = new RollbackJob(UUID.randomUUID(), level.dimension().location(), first, second, 1, false);
+        data.addRollbackJob(bounded);
+        RollbackScheduler scheduler = new RollbackScheduler();
+        var firstTick = scheduler.tick(level.getServer(), data, 64);
+        helper.assertTrue(firstTick.processed() == 1 && bounded.cursor() == 1, "per-job rate was exceeded");
+        scheduler.tick(level.getServer(), data, 64);
+        helper.assertTrue(level.getBlockState(first).is(Blocks.STONE) && level.getBlockState(second).is(Blocks.STONE),
+                "bounded rollback did not finish safely");
+
+        BlockPos unloaded = new BlockPos(first.getX() + 16_000, first.getY(), first.getZ());
+        RollbackJob waiting = new RollbackJob(UUID.randomUUID(), level.dimension().location(), unloaded, unloaded, 4, false);
+        data.addRollbackJob(waiting);
+        var waitingTick = scheduler.tick(level.getServer(), data, 64);
+        helper.assertTrue(waitingTick.waitingForChunk(), "unloaded job did not enter waiting state");
+        helper.assertTrue(waiting.cursor() == 0, "unloaded position was skipped instead of resumable");
+        helper.assertTrue(!level.hasChunkAt(unloaded), "rollback forced an unloaded chunk to load");
+        data.removeRollbackJob(waiting.id());
+        helper.succeed();
     }
 }

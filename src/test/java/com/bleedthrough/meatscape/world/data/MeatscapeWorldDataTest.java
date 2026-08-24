@@ -8,6 +8,7 @@ import com.bleedthrough.meatscape.core.migration.DataSchema;
 import com.bleedthrough.meatscape.coherence.rift.DimensionChunkKey;
 import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
 import com.bleedthrough.meatscape.safety.ProtectedRegion;
+import com.bleedthrough.meatscape.coherence.rollback.RollbackJob;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -80,6 +81,23 @@ class MeatscapeWorldDataTest {
         assertTrue(restored.isProtected(dimension, anchor.offset(5, 0, 0)));
         assertTrue(restored.removeAnchorRegion(dimension, anchor));
         assertFalse(restored.isProtected(dimension, anchor));
+    }
+
+    @Test void versionThreeAddsEmptyRollbackStateAndJobsResumeAfterReload() {
+        CompoundTag old = new CompoundTag();
+        old.putInt(MeatscapeWorldData.SCHEMA_KEY, DataSchema.VERSION_3);
+        assertTrue(MeatscapeWorldData.load(old).rollbackJobs().isEmpty());
+
+        MeatscapeWorldData data = new MeatscapeWorldData();
+        RollbackJob job = new RollbackJob(UUID.randomUUID(), ResourceLocation.withDefaultNamespace("overworld"),
+                new BlockPos(0, 60, 0), new BlockPos(2, 60, 0), 1, true);
+        job.advance(true);
+        data.addRollbackJob(job);
+        MeatscapeWorldData restored = MeatscapeWorldData.load(data.save(new CompoundTag()));
+        RollbackJob resumed = restored.findRollbackJob(job.id()).orElseThrow();
+        assertEquals(1, resumed.cursor());
+        assertEquals(1, resumed.restored());
+        assertTrue(resumed.dryRun());
     }
 
     @Test

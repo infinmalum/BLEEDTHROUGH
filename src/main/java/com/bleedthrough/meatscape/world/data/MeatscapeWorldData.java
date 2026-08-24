@@ -6,6 +6,7 @@ import com.bleedthrough.meatscape.coherence.rift.RiftSpatialIndex;
 import com.bleedthrough.meatscape.coherence.data.MawCoherenceData;
 import com.bleedthrough.meatscape.core.migration.DataSchema;
 import com.bleedthrough.meatscape.safety.ProtectedRegion;
+import com.bleedthrough.meatscape.coherence.rollback.RollbackJob;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +29,7 @@ public final class MeatscapeWorldData extends SavedData {
     static final String PENDING_KEY = "PendingCoherence";
     static final String VALUE_KEY = "Value";
     static final String PROTECTED_REGIONS_KEY = "ProtectedRegions";
+    static final String ROLLBACK_JOBS_KEY = "RollbackJobs";
 
     private final int schemaVersion;
     private WorldStage worldStage;
@@ -36,9 +38,10 @@ public final class MeatscapeWorldData extends SavedData {
     private final Map<DimensionChunkKey, Integer> pendingCoherence;
     private final RiftSpatialIndex spatialIndex;
     private final Map<UUID, ProtectedRegion> protectedRegions;
+    private final Map<UUID, RollbackJob> rollbackJobs;
 
     public MeatscapeWorldData() {
-        this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of(), Map.of());
+        this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of(), Map.of(), Map.of());
         setDirty();
     }
 
@@ -48,7 +51,8 @@ public final class MeatscapeWorldData extends SavedData {
             boolean paused,
             Map<UUID, RiftRecord> rifts,
             Map<DimensionChunkKey, Integer> pendingCoherence,
-            Map<UUID, ProtectedRegion> protectedRegions) {
+            Map<UUID, ProtectedRegion> protectedRegions,
+            Map<UUID, RollbackJob> rollbackJobs) {
         this.schemaVersion = schemaVersion;
         this.worldStage = worldStage;
         this.paused = paused;
@@ -57,6 +61,7 @@ public final class MeatscapeWorldData extends SavedData {
         this.spatialIndex = new RiftSpatialIndex();
         this.spatialIndex.rebuild(this.rifts.values());
         this.protectedRegions = new LinkedHashMap<>(protectedRegions);
+        this.rollbackJobs = new LinkedHashMap<>(rollbackJobs);
     }
 
     public static MeatscapeWorldData get(MinecraftServer server) {
@@ -88,8 +93,13 @@ public final class MeatscapeWorldData extends SavedData {
             ProtectedRegion region = ProtectedRegion.load((CompoundTag) regionTag);
             regions.put(region.id(), region);
         }
+        Map<UUID, RollbackJob> jobs = new LinkedHashMap<>();
+        for (Tag jobTag : tag.getList(ROLLBACK_JOBS_KEY, Tag.TAG_COMPOUND)) {
+            RollbackJob job = RollbackJob.load((CompoundTag) jobTag);
+            jobs.put(job.id(), job);
+        }
         return new MeatscapeWorldData(
-                DataSchema.WORLD_CURRENT, stage, tag.getBoolean(PAUSED_KEY), rifts, pending, regions);
+                DataSchema.WORLD_CURRENT, stage, tag.getBoolean(PAUSED_KEY), rifts, pending, regions, jobs);
     }
 
     @Override
@@ -110,6 +120,9 @@ public final class MeatscapeWorldData extends SavedData {
         ListTag regionTags = new ListTag();
         protectedRegions.values().stream().map(ProtectedRegion::save).forEach(regionTags::add);
         tag.put(PROTECTED_REGIONS_KEY, regionTags);
+        ListTag jobTags = new ListTag();
+        rollbackJobs.values().stream().map(RollbackJob::save).forEach(jobTags::add);
+        tag.put(ROLLBACK_JOBS_KEY, jobTags);
         return tag;
     }
 
@@ -218,6 +231,29 @@ public final class MeatscapeWorldData extends SavedData {
 
     public boolean isProtected(net.minecraft.resources.ResourceLocation dimension, net.minecraft.core.BlockPos pos) {
         return protectedRegions.values().stream().anyMatch(region -> region.contains(dimension, pos));
+    }
+
+    public Collection<RollbackJob> rollbackJobs() {
+        return List.copyOf(rollbackJobs.values());
+    }
+
+    public Optional<RollbackJob> findRollbackJob(UUID id) {
+        return Optional.ofNullable(rollbackJobs.get(id));
+    }
+
+    public void addRollbackJob(RollbackJob job) {
+        rollbackJobs.put(job.id(), job);
+        setDirty();
+    }
+
+    public boolean removeRollbackJob(UUID id) {
+        if (rollbackJobs.remove(id) == null) return false;
+        setDirty();
+        return true;
+    }
+
+    public void rollbackProgressed() {
+        setDirty();
     }
 
     private static int clamp(int value) {

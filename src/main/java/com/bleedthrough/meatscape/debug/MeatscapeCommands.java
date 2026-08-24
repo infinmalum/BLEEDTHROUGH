@@ -8,6 +8,7 @@ import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
 import com.bleedthrough.meatscape.safety.ChunkSafetyService;
 import com.bleedthrough.meatscape.safety.ProtectedRegion;
 import com.bleedthrough.meatscape.safety.TerrainTrust;
+import com.bleedthrough.meatscape.coherence.rollback.RollbackJob;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -86,6 +87,26 @@ public final class MeatscapeCommands {
                                         IntegerArgumentType.getInteger(context, "radius")))))
                 .then(Commands.literal("inspect")
                         .executes(context -> inspectSafety(context.getSource())))
+                .then(Commands.literal("rollback")
+                        .then(Commands.literal("start")
+                                .then(Commands.argument("radius", IntegerArgumentType.integer(1, 128))
+                                        .then(Commands.argument("rate", IntegerArgumentType.integer(1, 4096))
+                                                .executes(context -> startRollback(
+                                                        context.getSource(),
+                                                        IntegerArgumentType.getInteger(context, "radius"),
+                                                        IntegerArgumentType.getInteger(context, "rate"), false))
+                                                .then(Commands.argument("dryRun", BoolArgumentType.bool())
+                                                        .executes(context -> startRollback(
+                                                                context.getSource(),
+                                                                IntegerArgumentType.getInteger(context, "radius"),
+                                                                IntegerArgumentType.getInteger(context, "rate"),
+                                                                BoolArgumentType.getBool(context, "dryRun")))))))
+                        .then(Commands.literal("cancel")
+                                .then(Commands.argument("id", StringArgumentType.word())
+                                        .executes(context -> cancelRollback(
+                                                context.getSource(), StringArgumentType.getString(context, "id")))))
+                        .then(Commands.literal("status")
+                                .executes(context -> rollbackStatus(context.getSource()))))
                 .then(Commands.literal("debug")
                         .then(Commands.literal("stats")
                                 .executes(context -> debugStats(context.getSource())))));
@@ -181,13 +202,18 @@ public final class MeatscapeCommands {
 
     private static int debugStats(CommandSourceStack source) {
         var stats = EvolutionSchedulerEvents.get(source.getServer()).stats();
+        var rollback = EvolutionSchedulerEvents.getRollback(source.getServer()).stats();
         double millis = stats.lastTickNanos() / 1_000_000.0D;
         source.sendSuccess(() -> Component.literal("Evolution Scheduler: processed="
                 + stats.lastTickProcessed()
                 + " total=" + stats.totalProcessed()
                 + " queue=" + stats.queueLength()
                 + " tickMs=" + String.format(java.util.Locale.ROOT, "%.3f", millis)
-                + " skipped=" + stats.skipped()), false);
+                + " skipped=" + stats.skipped()
+                + " rollbackProcessed=" + rollback.processed()
+                + " rollbackRestored=" + rollback.restored()
+                + " rollbackJobs=" + rollback.activeJobs()
+                + " rollbackWaiting=" + rollback.waitingForChunk()), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -217,5 +243,38 @@ public final class MeatscapeCommands {
                 + " positionModified=" + data.isModified(pos)
                 + " protected=" + protectedHere), false);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int startRollback(CommandSourceStack source, int radius, int rate, boolean dryRun) {
+        BlockPos center = BlockPos.containing(source.getPosition());
+        RollbackJob job = new RollbackJob(UUID.randomUUID(), source.getLevel().dimension().location(),
+                center.offset(-radius, -radius, -radius), center.offset(radius, radius, radius), rate, dryRun);
+        MeatscapeWorldData.get(source.getServer()).addRollbackJob(job);
+        source.sendSuccess(() -> Component.literal("Started rollback " + job.id()
+                + " volume=" + job.volume() + " rate=" + job.rate() + " dryRun=" + job.dryRun()), true);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int cancelRollback(CommandSourceStack source, String idText) {
+        UUID id = parseUuid(source, idText);
+        if (id == null) return 0;
+        boolean removed = MeatscapeWorldData.get(source.getServer()).removeRollbackJob(id);
+        source.sendSuccess(() -> Component.literal(removed ? "Cancelled rollback " + id : "Rollback not found: " + id), true);
+        return removed ? Command.SINGLE_SUCCESS : 0;
+    }
+
+    private static int rollbackStatus(CommandSourceStack source) {
+        var jobs = MeatscapeWorldData.get(source.getServer()).rollbackJobs();
+        if (jobs.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("No active rollback jobs"), false);
+            return Command.SINGLE_SUCCESS;
+        }
+        for (RollbackJob job : jobs) {
+            source.sendSuccess(() -> Component.literal("Rollback " + job.id()
+                    + " cursor=" + job.cursor() + "/" + job.volume()
+                    + " restorable=" + job.restored() + " skipped=" + job.skipped()
+                    + " rate=" + job.rate() + " dryRun=" + job.dryRun()), false);
+        }
+        return jobs.size();
     }
 }

@@ -8,6 +8,7 @@ import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
 import com.bleedthrough.meatscape.core.config.MeatscapeConfig;
 import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
 import com.bleedthrough.meatscape.safety.SafeEvolutionConverter;
+import com.bleedthrough.meatscape.coherence.rollback.RollbackScheduler;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -29,6 +30,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = Meatscape.MOD_ID)
 public final class EvolutionSchedulerEvents {
     private static final Map<MinecraftServer, EvolutionScheduler> SCHEDULERS = new IdentityHashMap<>();
+    private static final Map<MinecraftServer, RollbackScheduler> ROLLBACK_SCHEDULERS = new IdentityHashMap<>();
 
     private EvolutionSchedulerEvents() {
     }
@@ -39,6 +41,10 @@ public final class EvolutionSchedulerEvents {
                 MeatscapeConfig.EVOLUTION_PER_RIFT_BUDGET.get()));
     }
 
+    public static RollbackScheduler getRollback(MinecraftServer server) {
+        return ROLLBACK_SCHEDULERS.computeIfAbsent(server, ignored -> new RollbackScheduler());
+    }
+
     @SubscribeEvent
     public static void serverStarted(ServerStartedEvent event) {
         rebuild(event.getServer());
@@ -47,6 +53,7 @@ public final class EvolutionSchedulerEvents {
     @SubscribeEvent
     public static void serverStopping(ServerStoppingEvent event) {
         EvolutionScheduler removed = SCHEDULERS.remove(event.getServer());
+        ROLLBACK_SCHEDULERS.remove(event.getServer());
         if (removed != null) {
             removed.clear();
         }
@@ -59,11 +66,16 @@ public final class EvolutionSchedulerEvents {
         }
         MinecraftServer server = event.getServer();
         MeatscapeWorldData data = MeatscapeWorldData.get(server);
-        var candidates = get(server).tick(data.isPaused(), server.overworld().getGameTime(), environment(server, data));
+        int globalBudget = MeatscapeConfig.EVOLUTION_GLOBAL_BUDGET.get();
+        int forwardBudget = data.rollbackJobs().isEmpty() ? globalBudget : Math.max(1, globalBudget / 2);
+        var candidates = get(server).tick(
+                data.isPaused(), server.overworld().getGameTime(), environment(server, data), forwardBudget);
         for (EvolutionCandidate candidate : candidates) {
             ServerLevel level = level(server, candidate.chunk().dimension());
             if (level != null) SafeEvolutionConverter.apply(level, data, candidate);
         }
+        int remainingBudget = Math.max(0, globalBudget - candidates.size());
+        getRollback(server).tick(server, data, remainingBudget);
     }
 
     @SubscribeEvent

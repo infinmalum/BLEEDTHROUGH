@@ -14,6 +14,19 @@ import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.Test;
 
 class EvolutionSchedulerTest {
+    @Test
+    void sharedBudgetOverrideCapsForwardWorkForRollbackCapacity() {
+        EvolutionScheduler scheduler = new EvolutionScheduler(64, 64);
+        FakeEnvironment environment = new FakeEnvironment();
+        UUID rift = UUID.randomUUID();
+        environment.rifts.add(rift);
+        for (int chunk = 0; chunk < 64; chunk++) {
+            DimensionChunkKey key = new DimensionChunkKey(OVERWORLD, new ChunkPos(chunk, 0));
+            environment.loaded.add(key);
+            scheduler.enqueue(new EvolutionTask(rift, key));
+        }
+        assertEquals(32, scheduler.tick(false, 1L, environment, 32).size());
+    }
     private static final ResourceLocation OVERWORLD = ResourceLocation.withDefaultNamespace("overworld");
 
     @Test

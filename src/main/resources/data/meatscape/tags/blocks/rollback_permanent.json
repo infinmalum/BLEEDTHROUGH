@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "meatscape:base_anchor",
+    "#meatscape:absolute_protected"
+  ]
+}

@@ -3,6 +3,7 @@ package com.bleedthrough.meatscape.safety.data;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.bleedthrough.meatscape.safety.TerrainTrust;
+import com.bleedthrough.meatscape.coherence.rollback.RestorationSource;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -44,5 +45,36 @@ class ChunkSafetyDataTest {
         ChunkSafetyData data = new ChunkSafetyData(() -> { });
         data.deserialize(legacy);
         assertEquals(TerrainTrust.UNKNOWN, data.trust());
+    }
+
+    @Test void restorationCategoriesAreSparseRoundTripAndClearable() {
+        ChunkSafetyData data = new ChunkSafetyData(() -> { });
+        BlockPos stone = new BlockPos(3, 64, 5);
+        BlockPos film = new BlockPos(8, -3, 9);
+        data.recordRestoration(stone, RestorationSource.STONE);
+        data.recordRestoration(film, RestorationSource.ATTACHMENT);
+        assertEquals(2, data.restorationCount());
+        assertTrue(data.serialize().toString().length() < 500,
+                "coarse restoration entries should remain compact");
+
+        ChunkSafetyData restored = new ChunkSafetyData(() -> { });
+        restored.deserialize(data.serialize());
+        assertEquals(RestorationSource.STONE, restored.restorationSource(stone));
+        assertEquals(RestorationSource.ATTACHMENT, restored.restorationSource(film));
+        restored.clearRestoration(stone);
+        assertNull(restored.restorationSource(stone));
+        assertEquals(1, restored.restorationCount());
+    }
+
+    @Test void schemaOneMigratesWithoutInventingRestorationHistory() {
+        ChunkSafetyData source = new ChunkSafetyData(() -> { });
+        source.markModified(new BlockPos(1, 40, 2));
+        CompoundTag versionOne = source.serialize();
+        versionOne.putInt(ChunkSafetyData.SCHEMA_KEY, 1);
+        versionOne.remove(ChunkSafetyData.RESTORATION_KEY);
+        ChunkSafetyData restored = new ChunkSafetyData(() -> { });
+        restored.deserialize(versionOne);
+        assertEquals(1, restored.modifiedCount());
+        assertEquals(0, restored.restorationCount());
     }
 }

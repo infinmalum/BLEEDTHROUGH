@@ -17,6 +17,8 @@
 - [x] Phase 1 Maw Coherence 数据 Spike 已达到完成定义（2026-08-18）
 - [x] Phase 2 Rift 抽象数值源 Spike 已达到完成定义（2026-08-18）
 - [x] Phase 3 空 Evolution Scheduler Spike 已达到完成定义（2026-08-19）
+- [x] Phase 4 Provenance 与安全转换 Spike 已达到完成定义（2026-08-19）
+- [x] Phase 5 Rollback／Severance 原型已达到完成定义（2026-08-20）
 
 ## Phase 0 — 仓库与 Forge 骨架
 
@@ -185,21 +187,34 @@
 
 ### 实现
 
-- 与正向演化共享预算调度器。
-- 轻量来源类别与恢复映射。
-- 玩家后续建设检测。
-- `/meatscape rollback` 范围、速率和 dry-run 模式。
+- [x] 与正向演化共享预算调度器。
+- [x] 轻量来源类别与恢复映射。
+- [x] 玩家后续建设检测。
+- [x] `/meatscape rollback` 范围、速率和 dry-run 模式。
 
 ### 测试
 
-- 不能覆盖肉化后玩家放置的方块。
-- 不一次更新大量方块。
-- 中途停止、区块卸载和服务器重启后可安全继续。
-- 永久 Scar／Organ 内容不会被错误恢复。
+- [x] 不能覆盖肉化后玩家放置的方块。
+- [x] 不一次更新大量方块。
+- [x] 中途停止、区块卸载和服务器重启后可安全继续。
+- [x] 永久 Scar／Organ 内容不会被错误恢复。
 
 ### 退出条件
 
-正向转换和有限回退在同一测试世界中反复执行，存档与服务器保持稳定。
+- [x] 正向转换和有限回退在同一测试世界中反复执行，存档与服务器保持稳定。
+
+### 验证记录（2026-08-20）
+
+- Chunk Safety schema v2 只为安全转换位置保存 `STONE／SOIL／WOOD／ICE／ATTACHMENT` 五种粗粒度来源；不保存完整 BlockState、BlockEntity NBT 或灾难前快照。schema v1 迁移不会虚构恢复历史。
+- 世界 schema v4 保存 rollback job 的维度、边界、速率、dry-run、线性游标与标量统计；v3 迁移默认为空 job 集。重载夹具验证游标和统计可精确续跑。
+- 正向演化与 rollback 在同一 server tick 中共享全局预算。有恢复任务时正向演化最多预留一半，恢复使用剩余额度；每个 job 还受自身 rate 限制。
+- 遇到卸载区块时 job 保持当前游标并等待，不强制加载、不跳过；全局 pause 可中止处理，`rollback cancel` 可显式取消。
+- rollback 仅在当前位置仍为对应 Meatscape 占位方块时执行。玩家后续放置／破坏会清理恢复记录，即使记录残留，方块身份不匹配也会判为 `PLAYER_OVERRIDE` 而不覆盖。
+- `#meatscape:rollback_permanent`、任意 BlockEntity 与未来 Scar／Organ 绝对保护内容不会恢复；当前测试以 Base Anchor 验证永久内容优先级。
+- `/meatscape rollback start <radius> <rate> [dryRun]`、`cancel <id>`、`status` 已实现；`debug stats` 同时显示恢复处理量、可恢复量、活跃 job 和等待区块状态。
+- `./gradlew clean build runGameTestServer --console=plain`：通过；43 个 JUnit 测试无失败，11/11 required GameTest passed。
+- GameTest 覆盖两轮正向转换／有限恢复、attachment 清除、dry-run、玩家覆盖、永久内容、单 job 速率和卸载区块等待。
+- `./gradlew runClient --console=plain`：公共代码与资源加载至主菜单后人工终止；`runServer` 正常进入 `Done`、加载 schema v4，并通过 `stop` 正常保存关闭。
 
 ## 技术验证门
 
