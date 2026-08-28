@@ -2,6 +2,9 @@
   "replace": false,
   "values": [
     "meatscape:base_anchor",
+    "meatscape:rift_core",
+    "meatscape:heart_pump",
+    "meatscape:gestation_pod",
     "minecraft:bedrock",
     "minecraft:barrier",
     "minecraft:command_block",
