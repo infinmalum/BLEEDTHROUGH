@@ -5,6 +5,8 @@ import java.util.function.Supplier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import com.bleedthrough.meatscape.bioindustry.HeartPumpBlock;
+import com.bleedthrough.meatscape.coherence.rift.RiftCoreBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -23,6 +25,15 @@ public final class MeatscapeBlocks {
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.5F, 6.0F)));
     public static final RegistryObject<Block> DERMAL_FILM = block("dermal_film", () -> new Block(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PINK).strength(0.15F).noCollission()));
+    public static final RegistryObject<Block> DERMAL_SOIL = block("dermal_soil", () -> simple(MapColor.COLOR_PINK, 0.7F));
+    public static final RegistryObject<Block> OSSIFIED_STONE = block("ossified_stone", () -> simple(MapColor.QUARTZ, 2.0F));
+    public static final RegistryObject<Block> VASCULAR_MAT = block("vascular_mat", () -> simple(MapColor.COLOR_RED, 0.5F));
+    public static final RegistryObject<Block> NUTRIENT_MOUND = block("nutrient_mound", () -> simple(MapColor.COLOR_BROWN, 0.8F));
+    public static final RegistryObject<Block> GESTATION_POD = block("gestation_pod", () -> simple(MapColor.COLOR_PURPLE, 1.0F));
+    public static final RegistryObject<Block> RIFT_CORE = block("rift_core", () -> new RiftCoreBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(6.0F, 1200.0F).lightLevel(state -> 7)));
+    public static final RegistryObject<Block> HEART_PUMP = block("heart_pump", () -> new HeartPumpBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F).lightLevel(state -> 3)));
 
     private MeatscapeBlocks() { }
 
@@ -35,5 +46,9 @@ public final class MeatscapeBlocks {
         RegistryObject<Block> block = BLOCKS.register(name, supplier);
         ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
         return block;
+    }
+
+    private static Block simple(MapColor color, float strength) {
+        return new Block(BlockBehaviour.Properties.of().mapColor(color).strength(strength));
     }
 }

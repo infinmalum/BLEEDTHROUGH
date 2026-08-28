@@ -2,4 +2,16 @@
   "block.meatscape.base_anchor": "基地锚点",
   "block.meatscape.changed_stone": "异化石",
   "block.meatscape.dermal_film": "真皮覆膜"
+  ,"block.meatscape.dermal_soil": "真皮土",
+  "block.meatscape.ossified_stone": "骨化石",
+  "block.meatscape.vascular_mat": "血管垫",
+  "block.meatscape.nutrient_mound": "营养丘",
+  "block.meatscape.gestation_pod": "孕育囊",
+  "block.meatscape.rift_core": "裂隙核心",
+  "block.meatscape.heart_pump": "心脏泵",
+  "item.meatscape.raw_tissue": "生组织",
+  "item.meatscape.collagen": "胶原",
+  "item.meatscape.living_poultice": "活体敷料",
+  "entity.meatscape.maw_grazer": "深渊牧食者",
+  "entity.meatscape.immune_organism": "免疫生物"
 }

@@ -19,6 +19,8 @@
 - [x] Phase 3 空 Evolution Scheduler Spike 已达到完成定义（2026-08-19）
 - [x] Phase 4 Provenance 与安全转换 Spike 已达到完成定义（2026-08-19）
 - [x] Phase 5 Rollback／Severance 原型已达到完成定义（2026-08-20）
+- [x] Phase 6 Vertical Slice 技术范围已实现并通过自动化验证（2026-08-28）
+- [ ] Phase 6 体验退出条件待人工 10–15 分钟留存／收益平衡测试
 
 ## Phase 0 — 仓库与 Forge 骨架
 
@@ -229,17 +231,29 @@
 
 范围严格限制为：
 
-- 1 个真实可扩散测试 Rift；
-- 4 档可观察 Coherence；
-- 8–12 个核心自然／Meatscape 方块；
-- 1 种 Grazer／Brood 与 1 种 Immune Organism；
-- 1 个 Heart Pump；
-- 1 条“采集 → 加工 → 明显收益”的最短生物工业链；
-- 10–15 分钟 Advancement／现成 Quest 内容；
-- 资源包级雾、粒子和声音，不开发正式 Shader；
-- 客户端、专服、重启、多人和区块重载验证。
+- [x] 1 个真实可扩散 Rift Core；方块生命周期创建／删除持久化抽象 Rift。
+- [x] 4 档可观察 Coherence：`QUIET／EMERGING／ACTIVE／SATURATED`。
+- [x] 10 个核心方块：Base Anchor、Changed Stone、Dermal Film、Dermal Soil、Ossified Stone、Vascular Mat、Nutrient Mound、Gestation Pod、Rift Core、Heart Pump。
+- [x] 1 种 Maw Grazer 与 1 种 Immune Organism；均使用 Vanilla AI 加一个局部角色行为。
+- [x] 1 个 Heart Pump；核心逻辑不依赖 Create／IE。
+- [x] “Grazer Raw Tissue → Heart Pump Collagen → Living Poultice 再生收益”最短生物工业链。
+- [x] 4 步 Advancement 引导 Rift → 采集 → 加工 → 明显收益。
+- [x] 资源包级雾色／视距、粒子和环境声音；未引入 Shader。
+- [x] 客户端主菜单、普通专服启停、服务端保存、GameTest 和既有多人同步／重启／区块重载回归通过。
 
-体验退出条件：没有任务强迫时，测试玩家仍愿意保留、维护或扩大 Bleed Zone。若最优策略始终是立即清除，先重做收益与风险，不增加内容数量。
+体验退出条件：
+
+- [ ] 没有任务强迫时，测试玩家仍愿意保留、维护或扩大 Bleed Zone。若最优策略始终是立即清除，先重做收益与风险，不增加内容数量。
+
+### 验证记录（2026-08-28）
+
+- JDK：OpenJDK 17.0.19；Gradle 依赖与构建缓存使用持久化 `~/.gradle`，Netty native 使用工作区 `run/natives`。
+- `./gradlew clean build runGameTestServer --console=plain`：通过；44 个 JUnit 测试无失败，14/14 required GameTest passed，产出 151 KiB 单一 Core JAR。
+- Phase 6 GameTest 覆盖 Rift Core 源生命周期、Heart Pump 加工和两种生态实体属性；旧 Phase 4/5 安全转换与 rollback 回归仍通过。
+- 数据包加载 7 个自定义配方与 4 个自定义 Advancement，无解析错误；全部 JSON 经 `jq` 验证。
+- `runClient`：实体 renderer、方块／物品模型、声音引擎和纹理图集成功加载至主菜单；未见 Meatscape 资源缺失。
+- `runServer`：普通专服进入 `Done`，加载 world schema v4，通过 `stop` 完成全维度保存。
+- 尚未勾选体验门：自动化测试不能证明玩家会自愿保留 Bleed Zone，需要人工 10–15 分钟游玩记录。
 
 ## Phase 7 — Core Alpha
 

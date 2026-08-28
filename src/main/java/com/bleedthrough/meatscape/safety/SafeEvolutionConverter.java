@@ -8,6 +8,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import com.bleedthrough.meatscape.coherence.MawCoherenceService;
+import com.bleedthrough.meatscape.coherence.CoherenceTier;
 
 /** The only Phase 4 entry point allowed to mutate terrain for an evolution candidate. */
 public final class SafeEvolutionConverter {
@@ -23,13 +25,27 @@ public final class SafeEvolutionConverter {
                 world.isProtected(level.dimension().location(), target),
                 state.is(MeatscapeBlockTags.NATURAL_REPLACEABLE), safety.trust(), safety.isModified(target));
         if (decision == ConversionDecision.DESTRUCTIVE) {
-            if (level.setBlock(target, MeatscapeBlocks.CHANGED_STONE.get().defaultBlockState(), Block.UPDATE_ALL)) {
+            BlockState replacement = replacementFor(state, CoherenceTier.from(
+                    MawCoherenceService.get(level, candidate.chunk().pos())));
+            if (level.setBlock(target, replacement, Block.UPDATE_ALL)) {
                 safety.recordRestoration(target, RestorationSource.classify(state));
             }
         } else if (decision == ConversionDecision.ATTACHMENT) {
             placeAttachment(level, target);
         }
         return decision;
+    }
+
+    static BlockState replacementFor(BlockState original, CoherenceTier tier) {
+        RestorationSource source = RestorationSource.classify(original);
+        if (source == RestorationSource.SOIL) {
+            return (tier == CoherenceTier.QUIET || tier == CoherenceTier.EMERGING
+                    ? MeatscapeBlocks.DERMAL_SOIL : MeatscapeBlocks.NUTRIENT_MOUND).get().defaultBlockState();
+        }
+        if (source == RestorationSource.WOOD) return MeatscapeBlocks.VASCULAR_MAT.get().defaultBlockState();
+        if (source == RestorationSource.ICE) return MeatscapeBlocks.OSSIFIED_STONE.get().defaultBlockState();
+        return (tier == CoherenceTier.SATURATED ? MeatscapeBlocks.OSSIFIED_STONE : MeatscapeBlocks.CHANGED_STONE)
+                .get().defaultBlockState();
     }
 
     private static void placeAttachment(ServerLevel level, BlockPos surface) {
