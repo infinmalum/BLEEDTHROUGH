@@ -20,7 +20,8 @@
 - [x] Phase 4 Provenance 与安全转换 Spike 已达到完成定义（2026-08-19）
 - [x] Phase 5 Rollback／Severance 原型已达到完成定义（2026-08-20）
 - [x] Phase 6 Vertical Slice 技术范围已实现并通过自动化验证（2026-08-28）
-- [ ] Phase 6 体验退出条件待人工 10–15 分钟留存／收益平衡测试
+- [ ] Phase 6 体验平衡待模型、贴图和环境表现具备后，在 Alpha／Beta 由测试玩家评估；不阻塞 Phase 7
+- [ ] Phase 7 Core Alpha 进行中，分项范围见下文和 `PHASE_7_CORE_ALPHA.md`
 
 ## Phase 0 — 仓库与 Forge 骨架
 
@@ -241,9 +242,10 @@
 - [x] 资源包级雾色／视距、粒子和环境声音；未引入 Shader。
 - [x] 客户端主菜单、普通专服启停、服务端保存、GameTest 和既有多人同步／重启／区块重载回归通过。
 
-体验退出条件：
+Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
 
-- [ ] 没有任务强迫时，测试玩家仍愿意保留、维护或扩大 Bleed Zone。若最优策略始终是立即清除，先重做收益与风险，不增加内容数量。
+- [ ] 模型、贴图和环境表现具备可评估条件后，由测试玩家验证收益与风险。保留、清除和融合的选择沿用原始 DOCX 第十九节三路线设计；个别玩家选择清除不代表验收失败。关注是否某条路线全面占优，使其他选择失去意义。
+- 此项保持未验证，安排到 Alpha／Beta，不阻塞 Phase 7 技术开发；不把自动测试或占位材质运行当成体验通过。
 
 ### 验证记录（2026-08-28）
 
@@ -257,15 +259,15 @@
 
 ## Phase 7 — Core Alpha
 
-在垂直切片成立后逐项加入：
+按小闭环逐项实现，完整清单见 [Phase 7 详细计划](PHASE_7_CORE_ALPHA.md)。Phase 6 技术基线沿用；人工体验评估按上述安排进行。
 
-- The Bleeding 正式演出；
-- Dormant → Active Rift 流程；
-- Cauterization 与 White Sanctuary；
-- 更多资源和基础 Living Architecture；
-- 第一批正式 Overworld 生态；
-- 知识状态驱动的研究任务；
-- Core 独立专服长时间测试。
+- [x] 7.1 Dormant → Active Rift 与可恢复的首次返回触发技术闭环（2026-09-08）；真人演出验证待 Alpha；
+- [ ] 7.2 稀少 Dormant Rift 自然生成与 The Bleeding 完整演出；
+- [ ] 7.3 Cauterization 与 White Sanctuary；
+- [ ] 7.4 更多资源和基础 Living Architecture；
+- [ ] 7.5 第一批正式 Overworld 生态；
+- [ ] 7.6 知识状态驱动的研究任务；
+- [ ] 7.7 Core 独立专服长时间测试。
 
 这一阶段仍不要求完整 The Maw、三结局或正式 Shader。
 

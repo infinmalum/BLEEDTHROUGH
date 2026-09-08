@@ -285,11 +285,15 @@ public final class MeatscapeGameTests {
         var world = MeatscapeWorldData.get(level.getServer());
         BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
         long before = world.rifts().stream().filter(r -> r.position().equals(pos)).count();
-        level.setBlockAndUpdate(pos, MeatscapeBlocks.RIFT_CORE.get().defaultBlockState());
-        var rift = world.rifts().stream().filter(r -> r.position().equals(pos)).findFirst();
-        helper.assertTrue(before == 0 && rift.isPresent(), "Rift Core did not create a persistent Rift");
-        helper.assertTrue(rift.get().radius() == 6 && rift.get().strength() == 24, "Rift Core field parameters changed");
-        level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+        try {
+            level.setBlockAndUpdate(pos, MeatscapeBlocks.RIFT_CORE.get().defaultBlockState());
+            var rift = world.rifts().stream().filter(r -> r.position().equals(pos)).findFirst();
+            helper.assertTrue(before == 0 && rift.isPresent(), "Rift Core did not create a persistent Rift");
+            helper.assertTrue(rift.get().radius() == 96 && rift.get().strength() == 24,
+                    "Rift Core must use a six-chunk radius expressed in blocks");
+        } finally {
+            level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+        }
         helper.assertTrue(world.rifts().stream().noneMatch(r -> r.position().equals(pos)), "removed Rift Core left a source");
         helper.succeed();
     }

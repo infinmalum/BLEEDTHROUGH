@@ -22,6 +22,14 @@ public final class MeatscapeConfig {
             .comment("Enable the dependency-free provenance hook intended for optional Create moving structures.")
             .define("integrations.createBulkMovementSafety", true);
 
+    public static final ForgeConfigSpec.BooleanValue BLEEDING_ENABLED = BUILDER
+            .comment("Enable the first Nether-return Bleeding event; disabling also freezes a pending event.")
+            .define("progression.bleedingEnabled", true);
+
+    public static final ForgeConfigSpec.IntValue BLEEDING_DELAY = BUILDER
+            .comment("Observed server ticks before the first Bleeding event. Pause or absent local observers freeze it.")
+            .defineInRange("progression.bleedingDelayTicks", 600, 0, 72000);
+
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private MeatscapeConfig() {

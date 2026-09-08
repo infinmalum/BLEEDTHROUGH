@@ -1,1 +1,1 @@
-{"variants":{"":{"model":"meatscape:block/rift_core"}}}
+{"variants":{"active=true":{"model":"meatscape:block/rift_core"},"active=false":{"model":"meatscape:block/dormant_rift_core"}}}

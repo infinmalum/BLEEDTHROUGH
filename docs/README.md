@@ -11,6 +11,7 @@
 - [05 — 技术架构与模块边界](design/05-technical-architecture.md)
 - [06 — 外部集成、资产与性能](design/06-integrations-assets-performance.md)
 - [实施计划](IMPLEMENTATION_PLAN.md)
+- [Phase 7 Core Alpha 分项计划](PHASE_7_CORE_ALPHA.md)
 - [原始总体设计 DOCX](../../BLEEDTHROUGH%20%E2%80%94%20Minecraft%20%E6%95%B4%E5%90%88%E5%8C%85%E6%80%BB%E4%BD%93%E8%AE%BE%E8%AE%A1.docx)
 
 ## 当前冻结基线

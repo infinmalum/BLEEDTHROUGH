@@ -39,6 +39,8 @@ public final class MeatscapeWorldData extends SavedData {
     private final RiftSpatialIndex spatialIndex;
     private final Map<UUID, ProtectedRegion> protectedRegions;
     private final Map<UUID, RollbackJob> rollbackJobs;
+    private net.minecraft.core.BlockPos bleedingOrigin;
+    private int bleedingDelay;
 
     public MeatscapeWorldData() {
         this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of(), Map.of(), Map.of());
@@ -98,8 +100,14 @@ public final class MeatscapeWorldData extends SavedData {
             RollbackJob job = RollbackJob.load((CompoundTag) jobTag);
             jobs.put(job.id(), job);
         }
-        return new MeatscapeWorldData(
+        MeatscapeWorldData data = new MeatscapeWorldData(
                 DataSchema.WORLD_CURRENT, stage, tag.getBoolean(PAUSED_KEY), rifts, pending, regions, jobs);
+        if (stage == WorldStage.DORMANT && tag.contains("BleedingOrigin", Tag.TAG_LONG)) {
+            data.bleedingOrigin = net.minecraft.core.BlockPos.of(tag.getLong("BleedingOrigin"));
+            data.bleedingDelay = Math.max(0, Math.min(72_000, tag.getInt("BleedingDelay")));
+        }
+        if (tag.getInt(SCHEMA_KEY) != DataSchema.WORLD_CURRENT) data.setDirty();
+        return data;
     }
 
     @Override
@@ -107,6 +115,13 @@ public final class MeatscapeWorldData extends SavedData {
         tag.putInt(SCHEMA_KEY, DataSchema.WORLD_CURRENT);
         tag.putInt(STAGE_KEY, worldStage.id());
         tag.putBoolean(PAUSED_KEY, paused);
+        if (bleedingOrigin != null) {
+            tag.putLong("BleedingOrigin", bleedingOrigin.asLong());
+            tag.putInt("BleedingDelay", bleedingDelay);
+        } else {
+            tag.remove("BleedingOrigin");
+            tag.remove("BleedingDelay");
+        }
         ListTag riftTags = new ListTag();
         rifts.values().stream().map(RiftRecord::save).forEach(riftTags::add);
         tag.put(RIFTS_KEY, riftTags);
@@ -137,8 +152,37 @@ public final class MeatscapeWorldData extends SavedData {
     public void setWorldStage(WorldStage worldStage) {
         if (this.worldStage != worldStage) {
             this.worldStage = worldStage;
+            if (worldStage != WorldStage.DORMANT) {
+                bleedingOrigin = null;
+                bleedingDelay = 0;
+            }
             setDirty();
         }
+    }
+
+    public Optional<net.minecraft.core.BlockPos> bleedingOrigin() {
+        return Optional.ofNullable(bleedingOrigin);
+    }
+
+    public int bleedingDelay() { return bleedingDelay; }
+
+    /** First eligible return wins, including when multiple players return on the same tick. */
+    public boolean scheduleBleeding(net.minecraft.core.BlockPos origin, int delay) {
+        if (worldStage != WorldStage.DORMANT || bleedingOrigin != null) return false;
+        bleedingOrigin = origin.immutable();
+        bleedingDelay = Math.max(0, Math.min(72_000, delay));
+        setDirty();
+        return true;
+    }
+
+    /** Called once per server tick; pause freezes the remaining delay, including across reload. */
+    public boolean tickBleedingDelay() {
+        if (paused || bleedingOrigin == null || worldStage != WorldStage.DORMANT) return false;
+        if (bleedingDelay > 0) {
+            bleedingDelay--;
+            setDirty();
+        }
+        return bleedingDelay == 0;
     }
 
     public boolean isPaused() {

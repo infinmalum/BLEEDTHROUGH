@@ -39,6 +39,20 @@ public final class MeatscapeCommands {
     static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("meatscape")
                 .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("bleeding")
+                        .then(Commands.literal("status").executes(context -> bleedingStatus(context.getSource())))
+                        .then(Commands.literal("schedule").executes(context -> {
+                            var source = context.getSource();
+                            if (!source.getLevel().dimension().equals(net.minecraft.world.level.Level.OVERWORLD)) {
+                                source.sendFailure(Component.literal("Schedule The Bleeding from the Overworld."));
+                                return 0;
+                            }
+                            boolean scheduled = MeatscapeWorldData.get(source.getServer()).scheduleBleeding(
+                                    BlockPos.containing(source.getPosition()),
+                                    com.bleedthrough.meatscape.core.config.MeatscapeConfig.BLEEDING_DELAY.get());
+                            bleedingStatus(source);
+                            return scheduled ? 1 : 0;
+                        })))
                 .then(Commands.literal("coherence")
                         .then(Commands.literal("get")
                                 .executes(context -> get(context.getSource())))
@@ -175,6 +189,7 @@ public final class MeatscapeCommands {
                 + " position=" + value.position().toShortString()
                 + " radius=" + value.radius()
                 + " strength=" + value.strength()
+                + " active=" + value.active()
                 + " lifetime=" + value.lifetimeTicks()), false);
         return Command.SINGLE_SUCCESS;
     }
@@ -183,6 +198,15 @@ public final class MeatscapeCommands {
         boolean paused = MeatscapeWorldData.get(source.getServer()).isPaused();
         source.sendSuccess(() -> Component.literal("Rift field paused=" + paused), false);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int bleedingStatus(CommandSourceStack source) {
+        var data = MeatscapeWorldData.get(source.getServer());
+        source.sendSuccess(() -> Component.literal("World stage=" + data.worldStage()
+                + " pendingOrigin=" + data.bleedingOrigin().map(BlockPos::toShortString).orElse("none")
+                + " remainingTicks=" + data.bleedingDelay()
+                + " (ready events wait for a nearby dormant Rift and a local observer)"), false);
+        return 1;
     }
 
     private static int setPause(CommandSourceStack source, boolean paused) {

@@ -133,7 +133,7 @@ public final class EvolutionSchedulerEvents {
         return new EvolutionEnvironment() {
             @Override
             public boolean riftExists(UUID riftId) {
-                return data.findRift(riftId).isPresent();
+                return data.findRift(riftId).filter(RiftRecord::active).isPresent();
             }
 
             @Override

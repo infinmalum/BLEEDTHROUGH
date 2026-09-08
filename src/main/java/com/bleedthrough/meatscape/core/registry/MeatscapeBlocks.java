@@ -31,7 +31,8 @@ public final class MeatscapeBlocks {
     public static final RegistryObject<Block> NUTRIENT_MOUND = block("nutrient_mound", () -> simple(MapColor.COLOR_BROWN, 0.8F));
     public static final RegistryObject<Block> GESTATION_POD = block("gestation_pod", () -> simple(MapColor.COLOR_PURPLE, 1.0F));
     public static final RegistryObject<Block> RIFT_CORE = block("rift_core", () -> new RiftCoreBlock(
-            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(6.0F, 1200.0F).lightLevel(state -> 7)));
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(6.0F, 1200.0F)
+                    .lightLevel(state -> state.getValue(RiftCoreBlock.ACTIVE) ? 7 : 0)));
     public static final RegistryObject<Block> HEART_PUMP = block("heart_pump", () -> new HeartPumpBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F).lightLevel(state -> 3)));
 

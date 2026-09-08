@@ -12,6 +12,7 @@ public final class RiftFieldCalculator {
     }
 
     public static int contribution(RiftRecord rift, ChunkPos chunkPos) {
+        if (!rift.active()) return 0;
         double x = (chunkPos.x << 4) + 8.0D;
         double z = (chunkPos.z << 4) + 8.0D;
         double dx = x - rift.position().getX();

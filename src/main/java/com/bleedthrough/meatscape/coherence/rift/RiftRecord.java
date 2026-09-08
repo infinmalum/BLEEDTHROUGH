@@ -15,7 +15,8 @@ public record RiftRecord(
         int radius,
         int strength,
         long createdGameTime,
-        long lifetimeTicks) {
+        long lifetimeTicks,
+        boolean active) {
     public static final int MIN_RADIUS = 1;
     public static final int MAX_RADIUS = 4_096;
     public static final int MIN_STRENGTH = 1;
@@ -30,10 +31,21 @@ public record RiftRecord(
     private static final String CREATED_KEY = "CreatedGameTime";
     private static final String LIFETIME_KEY = "LifetimeTicks";
 
+    /** Existing callers and pre-Phase-7 sources retain their active behavior. */
+    public RiftRecord(UUID id, ResourceLocation dimension, BlockPos position, int radius,
+            int strength, long createdGameTime, long lifetimeTicks) {
+        this(id, dimension, position, radius, strength, createdGameTime, lifetimeTicks, true);
+    }
+
+    public RiftRecord withActive(boolean active) {
+        return new RiftRecord(id, dimension, position, radius, strength, createdGameTime, lifetimeTicks, active);
+    }
+
     public RiftRecord {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(dimension, "dimension");
         Objects.requireNonNull(position, "position");
+        position = position.immutable();
         radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius));
         strength = Math.max(MIN_STRENGTH, Math.min(MAX_STRENGTH, strength));
         createdGameTime = Math.max(0L, createdGameTime);
@@ -53,6 +65,7 @@ public record RiftRecord(
         tag.putInt(STRENGTH_KEY, strength);
         tag.putLong(CREATED_KEY, createdGameTime);
         tag.putLong(LIFETIME_KEY, lifetimeTicks);
+        tag.putBoolean("Active", active);
         return tag;
     }
 
@@ -72,6 +85,7 @@ public record RiftRecord(
                 tag.getInt(RADIUS_KEY),
                 tag.getInt(STRENGTH_KEY),
                 tag.getLong(CREATED_KEY),
-                tag.contains(LIFETIME_KEY, Tag.TAG_ANY_NUMERIC) ? tag.getLong(LIFETIME_KEY) : PERMANENT);
+                tag.contains(LIFETIME_KEY, Tag.TAG_ANY_NUMERIC) ? tag.getLong(LIFETIME_KEY) : PERMANENT,
+                !tag.contains("Active") || tag.getBoolean("Active"));
     }
 }
