@@ -2,4 +2,16 @@
   "block.meatscape.base_anchor": "Base Anchor",
   "block.meatscape.changed_stone": "Changed Stone",
   "block.meatscape.dermal_film": "Dermal Film"
+  ,"block.meatscape.dermal_soil": "Dermal Soil",
+  "block.meatscape.ossified_stone": "Ossified Stone",
+  "block.meatscape.vascular_mat": "Vascular Mat",
+  "block.meatscape.nutrient_mound": "Nutrient Mound",
+  "block.meatscape.gestation_pod": "Gestation Pod",
+  "block.meatscape.rift_core": "Rift Core",
+  "block.meatscape.heart_pump": "Heart Pump",
+  "item.meatscape.raw_tissue": "Raw Tissue",
+  "item.meatscape.collagen": "Collagen",
+  "item.meatscape.living_poultice": "Living Poultice",
+  "entity.meatscape.maw_grazer": "Maw Grazer",
+  "entity.meatscape.immune_organism": "Immune Organism"
 }

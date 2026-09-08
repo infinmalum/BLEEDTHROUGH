@@ -2,7 +2,7 @@
 
 BLEEDTHROUGH is a Minecraft 1.20.1 bio-punk survival and ecological cosmic-horror project. Its core mod, Meatscape, models the gradual overlap between the Overworld and a complete biological reality called The Maw.
 
-Phases 0 and 1 are complete. The next milestone is Phase 2: abstract Rift sources for Maw Coherence.
+Phases 0–5 and the technical portion of the Phase 6 vertical slice are complete. Phase 6 now awaits its human retention/play-balance gate.
 
 ## Requirements
 
