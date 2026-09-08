@@ -22,6 +22,8 @@ import com.bleedthrough.meatscape.coherence.rollback.RollbackResult;
 import com.bleedthrough.meatscape.coherence.rollback.RollbackScheduler;
 import com.bleedthrough.meatscape.coherence.rollback.RollbackService;
 import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
+import com.bleedthrough.meatscape.core.registry.MeatscapeEntities;
+import com.bleedthrough.meatscape.core.registry.MeatscapeItems;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -206,7 +208,7 @@ public final class MeatscapeGameTests {
             helper.assertTrue(safety.restorationSource(target) == RestorationSource.SOIL, "coarse source was not recorded");
             helper.assertTrue(RollbackService.inspectOrRestore(level, target, true) == RollbackResult.WOULD_RESTORE,
                     "dry-run did not find restorable terrain");
-            helper.assertTrue(level.getBlockState(target).is(MeatscapeBlocks.CHANGED_STONE.get()), "dry-run changed terrain");
+            helper.assertTrue(!level.getBlockState(target).is(Blocks.DIRT), "dry-run changed terrain");
             helper.assertTrue(RollbackService.inspectOrRestore(level, target, false) == RollbackResult.RESTORED,
                     "rollback did not restore terrain");
             helper.assertTrue(level.getBlockState(target).is(Blocks.DIRT), "source category restored wrong terrain");
@@ -274,6 +276,53 @@ public final class MeatscapeGameTests {
         helper.assertTrue(waiting.cursor() == 0, "unloaded position was skipped instead of resumable");
         helper.assertTrue(!level.hasChunkAt(unloaded), "rollback forced an unloaded chunk to load");
         data.removeRollbackJob(waiting.id());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase6VerticalSlice")
+    public static void riftCoreOwnsPersistentDiffusibleSource(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var world = MeatscapeWorldData.get(level.getServer());
+        BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
+        long before = world.rifts().stream().filter(r -> r.position().equals(pos)).count();
+        try {
+            level.setBlockAndUpdate(pos, MeatscapeBlocks.RIFT_CORE.get().defaultBlockState());
+            var rift = world.rifts().stream().filter(r -> r.position().equals(pos)).findFirst();
+            helper.assertTrue(before == 0 && rift.isPresent(), "Rift Core did not create a persistent Rift");
+            helper.assertTrue(rift.get().radius() == 96 && rift.get().strength() == 24,
+                    "Rift Core must use a six-chunk radius expressed in blocks");
+        } finally {
+            level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+        }
+        helper.assertTrue(world.rifts().stream().noneMatch(r -> r.position().equals(pos)), "removed Rift Core left a source");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase6VerticalSlice")
+    public static void heartPumpCompletesProcessingStep(GameTestHelper helper) {
+        var level = helper.getLevel();
+        BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
+        level.setBlockAndUpdate(pos, MeatscapeBlocks.HEART_PUMP.get().defaultBlockState());
+        var player = helper.makeMockPlayer();
+        player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                new net.minecraft.world.item.ItemStack(MeatscapeItems.RAW_TISSUE.get(), 2));
+        MeatscapeBlocks.HEART_PUMP.get().use(level.getBlockState(pos), level, pos, player,
+                net.minecraft.world.InteractionHand.MAIN_HAND,
+                new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos),
+                        net.minecraft.core.Direction.UP, pos, false));
+        helper.assertTrue(player.getInventory().contains(new net.minecraft.world.item.ItemStack(MeatscapeItems.COLLAGEN.get())),
+                "Heart Pump did not turn collected tissue into collagen");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase6VerticalSlice")
+    public static void ecologyTypesLoadWithExpectedRoles(GameTestHelper helper) {
+        var grazer = MeatscapeEntities.MAW_GRAZER.get().create(helper.getLevel());
+        var immune = MeatscapeEntities.IMMUNE_ORGANISM.get().create(helper.getLevel());
+        helper.assertTrue(grazer != null && grazer.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH) == 16,
+                "Grazer role or attributes failed to load");
+        helper.assertTrue(immune != null && immune.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE) == 4,
+                "Immune Organism role or attributes failed to load");
         helper.succeed();
     }
 }

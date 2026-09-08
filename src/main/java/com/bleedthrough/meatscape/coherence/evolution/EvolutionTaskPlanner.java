@@ -16,6 +16,7 @@ public final class EvolutionTaskPlanner {
     public static List<EvolutionTask> forRift(
             RiftRecord rift, Predicate<DimensionChunkKey> isLoaded) {
         List<EvolutionTask> tasks = new ArrayList<>();
+        if (!rift.active()) return List.of();
         int minX = Math.floorDiv(rift.position().getX() - rift.radius(), 16);
         int maxX = Math.floorDiv(rift.position().getX() + rift.radius(), 16);
         int minZ = Math.floorDiv(rift.position().getZ() - rift.radius(), 16);

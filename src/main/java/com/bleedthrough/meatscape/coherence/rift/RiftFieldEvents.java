@@ -47,7 +47,8 @@ public final class RiftFieldEvents {
                 data.removeRift(rift.id());
                 continue;
             }
-            accumulate(rift, contributions);
+            RiftCoreBlock.syncLoadedState(level, rift);
+            if (rift.active()) accumulate(rift, contributions);
         }
 
         contributions.forEach((key, delta) -> apply(server, data, key, delta));

@@ -21,7 +21,7 @@ public final class RollbackService {
         }
         boolean expected = source == RestorationSource.ATTACHMENT
                 ? current.is(MeatscapeBlocks.DERMAL_FILM.get())
-                : current.is(MeatscapeBlocks.CHANGED_STONE.get());
+                : isEvolutionBlock(current);
         if (!expected) {
             if (!dryRun) safety.clearRestoration(pos);
             return RollbackResult.PLAYER_OVERRIDE;
@@ -32,5 +32,11 @@ public final class RollbackService {
             return RollbackResult.RESTORED;
         }
         return RollbackResult.PLAYER_OVERRIDE;
+    }
+
+    private static boolean isEvolutionBlock(BlockState state) {
+        return state.is(MeatscapeBlocks.CHANGED_STONE.get()) || state.is(MeatscapeBlocks.DERMAL_SOIL.get())
+                || state.is(MeatscapeBlocks.OSSIFIED_STONE.get()) || state.is(MeatscapeBlocks.VASCULAR_MAT.get())
+                || state.is(MeatscapeBlocks.NUTRIENT_MOUND.get());
     }
 }

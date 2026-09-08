@@ -19,6 +19,9 @@
 - [x] Phase 3 空 Evolution Scheduler Spike 已达到完成定义（2026-08-19）
 - [x] Phase 4 Provenance 与安全转换 Spike 已达到完成定义（2026-08-19）
 - [x] Phase 5 Rollback／Severance 原型已达到完成定义（2026-08-20）
+- [x] Phase 6 Vertical Slice 技术范围已实现并通过自动化验证（2026-08-28）
+- [ ] Phase 6 体验平衡待模型、贴图和环境表现具备后，在 Alpha／Beta 由测试玩家评估；不阻塞 Phase 7
+- [ ] Phase 7 Core Alpha 进行中，分项范围见下文和 `PHASE_7_CORE_ALPHA.md`
 
 ## Phase 0 — 仓库与 Forge 骨架
 
@@ -229,29 +232,42 @@
 
 范围严格限制为：
 
-- 1 个真实可扩散测试 Rift；
-- 4 档可观察 Coherence；
-- 8–12 个核心自然／Meatscape 方块；
-- 1 种 Grazer／Brood 与 1 种 Immune Organism；
-- 1 个 Heart Pump；
-- 1 条“采集 → 加工 → 明显收益”的最短生物工业链；
-- 10–15 分钟 Advancement／现成 Quest 内容；
-- 资源包级雾、粒子和声音，不开发正式 Shader；
-- 客户端、专服、重启、多人和区块重载验证。
+- [x] 1 个真实可扩散 Rift Core；方块生命周期创建／删除持久化抽象 Rift。
+- [x] 4 档可观察 Coherence：`QUIET／EMERGING／ACTIVE／SATURATED`。
+- [x] 10 个核心方块：Base Anchor、Changed Stone、Dermal Film、Dermal Soil、Ossified Stone、Vascular Mat、Nutrient Mound、Gestation Pod、Rift Core、Heart Pump。
+- [x] 1 种 Maw Grazer 与 1 种 Immune Organism；均使用 Vanilla AI 加一个局部角色行为。
+- [x] 1 个 Heart Pump；核心逻辑不依赖 Create／IE。
+- [x] “Grazer Raw Tissue → Heart Pump Collagen → Living Poultice 再生收益”最短生物工业链。
+- [x] 4 步 Advancement 引导 Rift → 采集 → 加工 → 明显收益。
+- [x] 资源包级雾色／视距、粒子和环境声音；未引入 Shader。
+- [x] 客户端主菜单、普通专服启停、服务端保存、GameTest 和既有多人同步／重启／区块重载回归通过。
 
-体验退出条件：没有任务强迫时，测试玩家仍愿意保留、维护或扩大 Bleed Zone。若最优策略始终是立即清除，先重做收益与风险，不增加内容数量。
+Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
+
+- [ ] 模型、贴图和环境表现具备可评估条件后，由测试玩家验证收益与风险。保留、清除和融合的选择沿用原始 DOCX 第十九节三路线设计；个别玩家选择清除不代表验收失败。关注是否某条路线全面占优，使其他选择失去意义。
+- 此项保持未验证，安排到 Alpha／Beta，不阻塞 Phase 7 技术开发；不把自动测试或占位材质运行当成体验通过。
+
+### 验证记录（2026-08-28）
+
+- JDK：OpenJDK 17.0.19；Gradle 依赖与构建缓存使用持久化 `~/.gradle`，Netty native 使用工作区 `run/natives`。
+- `./gradlew clean build runGameTestServer --console=plain`：通过；44 个 JUnit 测试无失败，14/14 required GameTest passed，产出 151 KiB 单一 Core JAR。
+- Phase 6 GameTest 覆盖 Rift Core 源生命周期、Heart Pump 加工和两种生态实体属性；旧 Phase 4/5 安全转换与 rollback 回归仍通过。
+- 数据包加载 7 个自定义配方与 4 个自定义 Advancement，无解析错误；全部 JSON 经 `jq` 验证。
+- `runClient`：实体 renderer、方块／物品模型、声音引擎和纹理图集成功加载至主菜单；未见 Meatscape 资源缺失。
+- `runServer`：普通专服进入 `Done`，加载 world schema v4，通过 `stop` 完成全维度保存。
+- 尚未勾选体验门：自动化测试不能证明玩家会自愿保留 Bleed Zone，需要人工 10–15 分钟游玩记录。
 
 ## Phase 7 — Core Alpha
 
-在垂直切片成立后逐项加入：
+按小闭环逐项实现，完整清单见 [Phase 7 详细计划](PHASE_7_CORE_ALPHA.md)。Phase 6 技术基线沿用；人工体验评估按上述安排进行。
 
-- The Bleeding 正式演出；
-- Dormant → Active Rift 流程；
-- Cauterization 与 White Sanctuary；
-- 更多资源和基础 Living Architecture；
-- 第一批正式 Overworld 生态；
-- 知识状态驱动的研究任务；
-- Core 独立专服长时间测试。
+- [x] 7.1 Dormant → Active Rift 与可恢复的首次返回触发技术闭环（2026-09-08）；真人演出验证待 Alpha；
+- [ ] 7.2 稀少 Dormant Rift 自然生成与 The Bleeding 完整演出；
+- [ ] 7.3 Cauterization 与 White Sanctuary；
+- [ ] 7.4 更多资源和基础 Living Architecture；
+- [ ] 7.5 第一批正式 Overworld 生态；
+- [ ] 7.6 知识状态驱动的研究任务；
+- [ ] 7.7 Core 独立专服长时间测试。
 
 这一阶段仍不要求完整 The Maw、三结局或正式 Shader。
 
