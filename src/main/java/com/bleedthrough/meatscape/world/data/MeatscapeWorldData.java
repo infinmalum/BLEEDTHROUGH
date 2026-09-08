@@ -41,6 +41,7 @@ public final class MeatscapeWorldData extends SavedData {
     private final Map<UUID, RollbackJob> rollbackJobs;
     private net.minecraft.core.BlockPos bleedingOrigin;
     private int bleedingDelay;
+    private int preludeElapsed = -1;
 
     public MeatscapeWorldData() {
         this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of(), Map.of(), Map.of());
@@ -105,6 +106,8 @@ public final class MeatscapeWorldData extends SavedData {
         if (stage == WorldStage.DORMANT && tag.contains("BleedingOrigin", Tag.TAG_LONG)) {
             data.bleedingOrigin = net.minecraft.core.BlockPos.of(tag.getLong("BleedingOrigin"));
             data.bleedingDelay = Math.max(0, Math.min(72_000, tag.getInt("BleedingDelay")));
+            data.preludeElapsed = tag.contains("PreludeElapsed", Tag.TAG_INT)
+                    ? Math.max(-1, Math.min(120, tag.getInt("PreludeElapsed"))) : -1;
         }
         if (tag.getInt(SCHEMA_KEY) != DataSchema.WORLD_CURRENT) data.setDirty();
         return data;
@@ -118,9 +121,11 @@ public final class MeatscapeWorldData extends SavedData {
         if (bleedingOrigin != null) {
             tag.putLong("BleedingOrigin", bleedingOrigin.asLong());
             tag.putInt("BleedingDelay", bleedingDelay);
+            tag.putInt("PreludeElapsed", preludeElapsed);
         } else {
             tag.remove("BleedingOrigin");
             tag.remove("BleedingDelay");
+            tag.remove("PreludeElapsed");
         }
         ListTag riftTags = new ListTag();
         rifts.values().stream().map(RiftRecord::save).forEach(riftTags::add);
@@ -155,6 +160,7 @@ public final class MeatscapeWorldData extends SavedData {
             if (worldStage != WorldStage.DORMANT) {
                 bleedingOrigin = null;
                 bleedingDelay = 0;
+                preludeElapsed = -1;
             }
             setDirty();
         }
@@ -165,6 +171,21 @@ public final class MeatscapeWorldData extends SavedData {
     }
 
     public int bleedingDelay() { return bleedingDelay; }
+
+    public int preludeElapsed() { return preludeElapsed; }
+
+    public void setPreludeElapsed(int elapsed) {
+        if (bleedingOrigin == null) return;
+        preludeElapsed = Math.max(-1, Math.min(120, elapsed));
+        setDirty();
+    }
+
+    /** Exploration may relocate a waiting event, but never an already-started performance. */
+    public void relocateBleeding(net.minecraft.core.BlockPos origin) {
+        if (bleedingOrigin == null || preludeElapsed >= 0) return;
+        bleedingOrigin = origin.immutable();
+        setDirty();
+    }
 
     /** First eligible return wins, including when multiple players return on the same tick. */
     public boolean scheduleBleeding(net.minecraft.core.BlockPos origin, int delay) {
