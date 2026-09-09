@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "wounded=false": { "model": "meatscape:block/regenerative_membrane" },
+    "wounded=true": { "model": "meatscape:block/wounded_regenerative_membrane" }
+  }
+}

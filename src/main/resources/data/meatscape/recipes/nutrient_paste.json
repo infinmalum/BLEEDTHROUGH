@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "meatscape:raw_tissue" },
+    { "item": "meatscape:raw_tissue" },
+    { "item": "minecraft:bone_meal" }
+  ],
+  "result": { "item": "meatscape:nutrient_paste", "count": 2 }
+}

@@ -47,7 +47,7 @@ public final class ThermalGameTests {
     private ThermalGameTests() { }
 
     /** Change only the sampled quart Y plane, restoring it in finally after every fixture. */
-    private static void biomes(ServerLevel level, LevelChunk chunk, ThermalProfile profile) {
+    static void biomes(ServerLevel level, LevelChunk chunk, ThermalProfile profile) {
         var registry = level.registryAccess().registryOrThrow(Registries.BIOME);
         chunk.fillBiomesFromNoise((x, y, z, sampler) -> y == 16
                 ? registry.getHolderOrThrow(ResourceKey.create(Registries.BIOME, profile.biomes().get((z & 3) * 4 + (x & 3))))

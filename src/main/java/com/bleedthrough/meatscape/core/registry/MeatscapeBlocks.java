@@ -7,6 +7,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import com.bleedthrough.meatscape.bioindustry.HeartPumpBlock;
 import com.bleedthrough.meatscape.coherence.rift.RiftCoreBlock;
+import com.bleedthrough.meatscape.architecture.RegenerativeMembraneBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -36,6 +37,9 @@ public final class MeatscapeBlocks {
                     .lightLevel(state -> state.getValue(RiftCoreBlock.ACTIVE) ? 7 : 0)));
     public static final RegistryObject<Block> HEART_PUMP = block("heart_pump", () -> new HeartPumpBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F).lightLevel(state -> 3)));
+    public static final RegistryObject<Block> REGENERATIVE_MEMBRANE = block("regenerative_membrane", () ->
+            new RegenerativeMembraneBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PINK)
+                    .strength(2.5F, 6.0F)));
 
     private MeatscapeBlocks() { }
 
