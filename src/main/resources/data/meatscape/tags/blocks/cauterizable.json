@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "meatscape:changed_stone",
+    "meatscape:dermal_soil",
+    "meatscape:ossified_stone",
+    "meatscape:vascular_mat",
+    "meatscape:nutrient_mound",
+    "meatscape:dermal_film"
+  ]
+}

@@ -42,6 +42,8 @@ public final class MeatscapeWorldData extends SavedData {
     private net.minecraft.core.BlockPos bleedingOrigin;
     private int bleedingDelay;
     private int preludeElapsed = -1;
+    private final Map<DimensionChunkKey, ThermalProfile> thermalProfiles = new LinkedHashMap<>();
+    private final Map<DimensionChunkKey, Integer> suppressionTicks = new LinkedHashMap<>();
 
     public MeatscapeWorldData() {
         this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of(), Map.of(), Map.of());
@@ -110,6 +112,16 @@ public final class MeatscapeWorldData extends SavedData {
                     ? Math.max(-1, Math.min(120, tag.getInt("PreludeElapsed"))) : -1;
         }
         if (tag.getInt(SCHEMA_KEY) != DataSchema.WORLD_CURRENT) data.setDirty();
+        for (Tag value : tag.getList("ThermalProfiles", Tag.TAG_COMPOUND)) {
+            CompoundTag entry = (CompoundTag) value;
+            ThermalProfile profile = ThermalProfile.load(entry.getList("Biomes", Tag.TAG_STRING));
+            if (profile != null) data.thermalProfiles.put(DimensionChunkKey.load(entry), profile);
+        }
+        for (Tag value : tag.getList("Suppression", Tag.TAG_COMPOUND)) {
+            CompoundTag entry = (CompoundTag) value;
+            int ticks = Math.max(0, Math.min(1200, entry.getInt("Ticks")));
+            if (ticks > 0) data.suppressionTicks.put(DimensionChunkKey.load(entry), ticks);
+        }
         return data;
     }
 
@@ -143,6 +155,20 @@ public final class MeatscapeWorldData extends SavedData {
         ListTag jobTags = new ListTag();
         rollbackJobs.values().stream().map(RollbackJob::save).forEach(jobTags::add);
         tag.put(ROLLBACK_JOBS_KEY, jobTags);
+        ListTag profiles = new ListTag();
+        thermalProfiles.forEach((key, profile) -> {
+            CompoundTag entry = key.save();
+            entry.put("Biomes", profile.save());
+            profiles.add(entry);
+        });
+        tag.put("ThermalProfiles", profiles);
+        ListTag suppression = new ListTag();
+        suppressionTicks.forEach((key, ticks) -> {
+            CompoundTag entry = key.save();
+            entry.putInt("Ticks", ticks);
+            suppression.add(entry);
+        });
+        tag.put("Suppression", suppression);
         return tag;
     }
 
@@ -271,6 +297,42 @@ public final class MeatscapeWorldData extends SavedData {
 
     public int pendingChunkCount() {
         return pendingCoherence.size();
+    }
+
+    public Optional<ThermalProfile> thermalProfile(DimensionChunkKey key) {
+        return Optional.ofNullable(thermalProfiles.get(key));
+    }
+
+    public void rememberThermalProfile(DimensionChunkKey key, ThermalProfile profile) {
+        if (!profile.equals(thermalProfiles.put(key, profile))) setDirty();
+    }
+
+    public void capPendingCoherence(DimensionChunkKey key, int cap) {
+        int old = pendingCoherence(key);
+        int next = Math.min(old, clamp(cap));
+        if (next != old) {
+            if (next == 0) pendingCoherence.remove(key); else pendingCoherence.put(key, next);
+            setDirty();
+        }
+    }
+
+    public int suppressionTicks(DimensionChunkKey key) { return suppressionTicks.getOrDefault(key, 0); }
+
+    public void clearSuppression(DimensionChunkKey key) {
+        if (suppressionTicks.remove(key) != null) setDirty();
+    }
+
+    public void suppress(DimensionChunkKey key) {
+        suppressionTicks.put(key, 1200); // Refresh, never stack an unbounded duration.
+        consumePendingCoherence(key);
+        setDirty();
+    }
+
+    public void tickSuppression() {
+        if (paused || suppressionTicks.isEmpty()) return;
+        suppressionTicks.replaceAll((key, ticks) -> ticks - 1);
+        suppressionTicks.values().removeIf(ticks -> ticks <= 0);
+        setDirty();
     }
 
     public Collection<ProtectedRegion> protectedRegions() {

@@ -266,6 +266,13 @@ public final class MeatscapeCommands {
                 + " modifiedPositions=" + data.modifiedCount()
                 + " positionModified=" + data.isModified(pos)
                 + " protected=" + protectedHere), false);
+        var level = source.getLevel();
+        var chunk = new ChunkPos(pos);
+        var key = com.bleedthrough.meatscape.coherence.thermal.ThermalRules.key(level, chunk);
+        source.sendSuccess(() -> Component.literal("Thermal: coherenceCap="
+                + com.bleedthrough.meatscape.coherence.thermal.ThermalRules.cap(level, chunk)
+                + " frozenColumn=" + com.bleedthrough.meatscape.coherence.thermal.ThermalRules.frozen(level, pos)
+                + " suppressionTicks=" + MeatscapeWorldData.get(source.getServer()).suppressionTicks(key)), false);
         return Command.SINGLE_SUCCESS;
     }
 

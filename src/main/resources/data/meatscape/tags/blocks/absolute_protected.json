@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
+    "meatscape:charred_scar",
     "meatscape:base_anchor",
     "meatscape:rift_core",
     "meatscape:heart_pump",

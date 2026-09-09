@@ -263,7 +263,7 @@ Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
 
 - [x] 7.1 Dormant → Active Rift 与可恢复的首次返回触发技术闭环（2026-09-08）；真人演出验证待 Alpha；
 - [x] 7.2 稀少 Dormant Rift 自然生成与 The Bleeding 演出技术闭环（2026-09-08）；真人表现验收待 Alpha；
-- [ ] 7.3 Cauterization 与 White Sanctuary；
+- [x] 7.3 Cauterization 与 White Sanctuary 技术闭环（2026-09-09）；真人操作与平衡验收待 Alpha／Beta；
 - [ ] 7.4 更多资源和基础 Living Architecture；
 - [ ] 7.5 第一批正式 Overworld 生态；
 - [ ] 7.6 知识状态驱动的研究任务；

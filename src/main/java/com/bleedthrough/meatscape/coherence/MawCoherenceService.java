@@ -1,6 +1,7 @@
 package com.bleedthrough.meatscape.coherence;
 
 import com.bleedthrough.meatscape.Meatscape;
+import com.bleedthrough.meatscape.coherence.thermal.ThermalRules;
 import com.bleedthrough.meatscape.coherence.data.MawCoherenceCapability;
 import com.bleedthrough.meatscape.coherence.data.MawCoherenceData;
 import com.bleedthrough.meatscape.core.network.CoherenceSyncPayload;
@@ -15,7 +16,8 @@ public final class MawCoherenceService {
     }
 
     public static int get(LevelChunk chunk) {
-        return data(chunk).value();
+        return chunk.getLevel() instanceof ServerLevel level
+                ? Math.min(data(chunk).value(), ThermalRules.cap(level, chunk)) : data(chunk).value();
     }
 
     public static int get(ServerLevel level, ChunkPos chunkPos) {
@@ -28,15 +30,21 @@ public final class MawCoherenceService {
 
     /** Applies routine field diffusion without producing one log line per affected chunk. */
     public static int addFromRift(ServerLevel level, LevelChunk chunk, int delta) {
-        return set(level, chunk.getPos(), data(chunk).value() + delta, false);
+        return set(level, chunk, get(chunk) + delta, false);
     }
 
     private static int set(ServerLevel level, ChunkPos chunkPos, int requestedValue, boolean logChange) {
         LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
+        return set(level, chunk, requestedValue, logChange);
+    }
+
+    private static int set(ServerLevel level, LevelChunk chunk, int requestedValue, boolean logChange) {
+        ChunkPos chunkPos = chunk.getPos();
         MawCoherenceData data = data(chunk);
-        data.setValue(requestedValue);
+        int previous = data.value();
+        data.setValue(Math.min(requestedValue, ThermalRules.cap(level, chunk)));
         CoherenceSyncPayload payload = payload(level, chunkPos, data.value());
-        MeatscapeNetwork.sendToTracking(chunk, payload);
+        if (previous != data.value()) MeatscapeNetwork.sendToTracking(chunk, payload);
         if (logChange) {
             Meatscape.LOGGER.info("Set Maw Coherence dimension={} chunk={} value={}",
                     level.dimension().location(), chunkPos, data.value());

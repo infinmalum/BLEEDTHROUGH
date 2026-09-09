@@ -1,4 +1,8 @@
 {
+  "block.meatscape.charred_scar": "焦灼瘢痕",
+  "message.meatscape.pump_cost": "此处每份胶原需要 %s 份生组织（极寒降低效率）。",
+  "message.meatscape.cauterized": "烧灼完成：相干度最多降低 10，所在区块生长抑制 60 秒。焦痕不会自动恢复。",
+  "message.meatscape.cauterize_refused": "无法烧灼：仅处理有来源记录的自然组织或覆膜；不改写受保护主体，世界暂停时不执行。",
   "event.meatscape.bleeding": "渗血之始",
   "block.meatscape.base_anchor": "基地锚点",
   "block.meatscape.changed_stone": "异化石",

@@ -22,9 +22,15 @@ public final class HeartPumpBlock extends Block {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  InteractionHand hand, BlockHitResult hit) {
         ItemStack held = player.getItemInHand(hand);
-        if (!held.is(MeatscapeItems.RAW_TISSUE.get()) || held.getCount() < 2) return InteractionResult.PASS;
+        if (!held.is(MeatscapeItems.RAW_TISSUE.get())) return InteractionResult.PASS;
         if (!level.isClientSide) {
-            held.shrink(2);
+            int cost = com.bleedthrough.meatscape.coherence.thermal.ThermalRules.frozen(
+                    (net.minecraft.server.level.ServerLevel) level, pos) ? 8 : 2;
+            if (held.getCount() < cost) {
+                player.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.meatscape.pump_cost", cost), true);
+                return InteractionResult.CONSUME;
+            }
+            held.shrink(cost);
             ItemStack result = new ItemStack(MeatscapeItems.COLLAGEN.get());
             if (!player.getInventory().add(result)) player.drop(result, false);
             if (player instanceof ServerPlayer serverPlayer) serverPlayer.swing(hand, true);

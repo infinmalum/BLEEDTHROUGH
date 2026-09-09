@@ -18,6 +18,10 @@ public final class SafeEvolutionConverter {
     public static ConversionDecision apply(ServerLevel level, MeatscapeWorldData world, EvolutionCandidate candidate) {
         BlockPos target = candidate.position().below();
         if (!level.hasChunkAt(target)) return ConversionDecision.SKIP_NOT_REPLACEABLE;
+        if (com.bleedthrough.meatscape.coherence.thermal.ThermalRules.frozen(level, target)
+                || com.bleedthrough.meatscape.coherence.thermal.ThermalRules.suppressed(level, candidate.chunk().pos())) {
+            return ConversionDecision.SKIP_NOT_REPLACEABLE;
+        }
         BlockState state = level.getBlockState(target);
         boolean absolute = state.is(MeatscapeBlockTags.ABSOLUTE_PROTECTED) || level.getBlockEntity(target) != null;
         var safety = ChunkSafetyService.get(level, target);
@@ -51,7 +55,9 @@ public final class SafeEvolutionConverter {
     private static void placeAttachment(ServerLevel level, BlockPos surface) {
         BlockPos[] candidates = { surface.above(), surface.north(), surface.south(), surface.east(), surface.west() };
         for (BlockPos pos : candidates) {
-            if (level.hasChunkAt(pos) && level.getBlockState(pos).isAir()) {
+            if (level.hasChunkAt(pos) && level.getBlockState(pos).isAir()
+                    && !com.bleedthrough.meatscape.coherence.thermal.ThermalRules.frozen(level, pos)
+                    && !com.bleedthrough.meatscape.coherence.thermal.ThermalRules.suppressed(level, new net.minecraft.world.level.ChunkPos(pos))) {
                 if (level.setBlock(pos, MeatscapeBlocks.DERMAL_FILM.get().defaultBlockState(), Block.UPDATE_ALL)) {
                     ChunkSafetyService.get(level, pos).recordRestoration(pos, RestorationSource.ATTACHMENT);
                 }
