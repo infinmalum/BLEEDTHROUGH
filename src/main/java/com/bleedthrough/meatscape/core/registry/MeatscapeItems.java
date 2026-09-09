@@ -16,6 +16,7 @@ public final class MeatscapeItems {
 
     public static final RegistryObject<Item> RAW_TISSUE = ITEMS.register("raw_tissue", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> COLLAGEN = ITEMS.register("collagen", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> NUTRIENT_PASTE = ITEMS.register("nutrient_paste", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> LIVING_POULTICE = ITEMS.register("living_poultice", () -> new Item(
             new Item.Properties().food(new FoodProperties.Builder().nutrition(2).saturationMod(0.2F).alwaysEat()
                     .effect(() -> new MobEffectInstance(MobEffects.REGENERATION, 160, 1), 1.0F).build())));

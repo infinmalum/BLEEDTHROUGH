@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["CCC", "N N", "CCC"],
+  "key": {
+    "C": { "tag": "forge:collagen" },
+    "N": { "tag": "forge:nutrient_pastes" }
+  },
+  "result": { "item": "meatscape:regenerative_membrane", "count": 4 }
+}

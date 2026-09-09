@@ -3,6 +3,7 @@ package com.bleedthrough.meatscape;
 import com.bleedthrough.meatscape.core.config.MeatscapeConfig;
 import com.bleedthrough.meatscape.core.network.MeatscapeNetwork;
 import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
+import com.bleedthrough.meatscape.core.registry.MeatscapeBlockEntities;
 import com.bleedthrough.meatscape.core.registry.MeatscapeEntities;
 import com.bleedthrough.meatscape.core.registry.MeatscapeItems;
 import com.mojang.logging.LogUtils;
@@ -19,6 +20,7 @@ public final class Meatscape {
 
     public Meatscape(FMLJavaModLoadingContext context) {
         MeatscapeBlocks.register(context.getModEventBus());
+        MeatscapeBlockEntities.register(context.getModEventBus());
         MeatscapeItems.register(context.getModEventBus());
         MeatscapeEntities.register(context.getModEventBus());
         com.bleedthrough.meatscape.core.registry.MeatscapeFeatures.register(context.getModEventBus());

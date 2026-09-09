@@ -1,5 +1,9 @@
 {
   "block.meatscape.charred_scar": "Charred Scar",
+  "block.meatscape.regenerative_membrane": "Regenerative Membrane",
+  "item.meatscape.nutrient_paste": "Nutrient Paste",
+  "message.meatscape.membrane_full": "This membrane is already fully fed.",
+  "message.meatscape.membrane_fed": "Membrane nutrition: %s/4",
   "message.meatscape.pump_cost": "This pump needs %s Raw Tissue per Collagen (cold lowers efficiency).",
   "message.meatscape.cauterized": "Cauterized: Coherence reduced by up to 10; local growth suppressed for 60 seconds. Scars remain.",
   "message.meatscape.cauterize_refused": "Cannot cauterize: only recorded natural growth or removable film; protected structures and paused worlds are untouched.",

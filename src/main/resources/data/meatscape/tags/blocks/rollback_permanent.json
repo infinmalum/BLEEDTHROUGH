@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "meatscape:base_anchor",
+    "meatscape:regenerative_membrane",
     "#meatscape:absolute_protected"
   ]
 }

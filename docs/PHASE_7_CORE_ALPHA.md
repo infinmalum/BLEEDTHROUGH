@@ -110,9 +110,29 @@
 
 ## 7.4 资源与 Living Architecture
 
-- [ ] 从现有组织／胶原链扩展一个可用建筑组件与必要资源，记录输入、输出、成本和作用范围。
-- [ ] 营养依赖、冻结效率、保存／卸载和专服测试；核心不依赖 Create／IE。
-- [ ] 保留现有注册 ID；每个新增内容同时具备配方、掉落和可加载模型。
+- Git 基线（2026-09-09）：从已合并 PR #10 的 main `ec86be9` 开始实现。
+
+- [x] 从现有组织／胶原链扩展一个可用建筑组件与必要资源，记录输入、输出、成本和作用范围。
+- [x] 营养依赖、冻结效率、保存／卸载和自动测试；核心不依赖 Create／IE。
+- [x] 保留现有注册 ID；新增内容具备配方、掉落和可加载模型。
+- [x] 最终 JDK 17 全量回归、客户端资源加载和普通专服启停。
+- [ ] Alpha／Beta 人工验收：建筑手感、爆炸强度平衡、营养成本、红石读数可读性与正式美术。
+
+### 7.4 实现边界与默认参数
+
+- 最小组件为 `regenerative_membrane`（再生真皮膜墙），是玩家主动建造的 Living Architecture，不参与自然扩散。完整膜墙承受一次爆炸后设置持久化 `wounded=true`；尚未修复又被爆炸命中则按普通方块破坏，避免形成无营养的永久防爆墙。玩家正常挖掘仍可移除。每块膜墙独立保存最多 4 份营养，比较器以 0／3／7／11／15 输出储量。
+- 营养材料为 `nutrient_paste`：2 生组织 + 1 骨粉合成 2 份。膜墙配方为 6 胶原 + 2 营养膏合成 4 块。配方及喂养使用 `#forge:collagen`、`#forge:nutrient_pastes`，允许数据包提供材料等价物；核心没有 Create／IE 类型或必需依赖。
+- 潜行与否不影响喂养：手持营养膏右击向单块膜墙加入 1 份，容量已满时不消耗。受伤且储有营养时，在已加载、未全局暂停、非 White Sanctuary 冻结列中累计 200 个服务端 tick；完成后恰好消耗 1 份并恢复外观。无营养、pause 与极寒均冻结进度而非清零或消耗。
+- 区块卸载时没有全局任务、票或强引用，愈合不会离线推进；BlockEntity 的 `DataVersion=1`、`Nutrition`、`HealProgress` 在重载后精确续跑，非法 NBT 被钳制。它不需要世界 schema v8，也不改变网络协议；外观完全由同步的原版 BlockState 表达。
+- 膜墙作为 BlockEntity／Living component 同时位于绝对保护与永久回退标签，不会被正向演化、烧灼或 rollback 误改；这不妨碍玩家主动挖除。没有营养网络、跨块共享库存、方块扫描或每块随机 tick；血管运输等网络组件留给后续独立闭环。
+- 当前完整／受伤模型分别复用已有真皮土／异化石贴图，营养膏复用原版岩浆膏图标；这是可加载的占位表现，不标记为正式美术完成。
+
+### 7.4 自动验证记录（2026-09-09）
+
+- 首次服务端启动暴露 BlockEntity DeferredRegister 被重复挂载，Forge 注册表拒绝启动；删除重复注册后重新执行，不能将 Gradle 外层曾错误显示的成功记作 GameTest 通过。
+- JDK 17 `clean build runGameTestServer`：59 个既有 JUnit 与 25/25 required GameTest 通过。新增测试覆盖容量／材料消耗、比较器满值、真实爆炸第一次受伤／第二次破坏、pause 和极寒休眠、73 tick 保存后续跑、单次营养消耗、恶意 NBT 钳制、演化／回退保护以及玩家主动拆除。资源 JSON 全量解析及 `git diff --check` 通过；最终 Core JAR 约 225 KiB。
+- 客户端完成 Mod、BlockEntity 注册、纹理图集和声音引擎初始化，无 Meatscape 资源缺失记录；随后手动终止开发实例。仍有既知 flite／原版声音／shader sampler／开发 Realms 提示，不计作本 Mod 错误。该检查不等于入世界模型和建筑体验验收。日志：`run/phase7-4-client.log`。
+- 最终代码的普通专服加载 schema v7、DORMANT 并进入 `Done`；测试放置 wounded 膜墙后，`data get block` 在数据包 `reload` 前后均返回 `DataVersion=1`、Nutrition=0、HealProgress=0。7 个配方正常加载，`stop` 后全维度保存且 Gradle 正常退出。日志：`run/phase7-4-server.log`。
 
 ## 7.5 Overworld 生态
 
