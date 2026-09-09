@@ -59,6 +59,12 @@ public final class RiftCoreBlock extends Block {
     }
 
     @Override
+    public void tick(BlockState state, ServerLevel level, BlockPos pos, net.minecraft.util.RandomSource random) {
+        // Worldgen's persisted one-shot registration tick; never used for per-block infection.
+        onPlace(state, level, pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), false);
+    }
+
+    @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (level instanceof ServerLevel serverLevel && !newState.is(this)) {
             MeatscapeWorldData data = MeatscapeWorldData.get(serverLevel.getServer());

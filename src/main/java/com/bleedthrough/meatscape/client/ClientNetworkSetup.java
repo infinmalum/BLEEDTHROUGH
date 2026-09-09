@@ -16,5 +16,7 @@ public final class ClientNetworkSetup {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         MeatscapeNetwork.registerClientReceiver(ClientCoherenceState::accept);
+        MeatscapeNetwork.registerPreludeReceiver(BleedingPresentation::accept);
+        event.enqueueWork(BleedingPresentation::installCompass);
     }
 }

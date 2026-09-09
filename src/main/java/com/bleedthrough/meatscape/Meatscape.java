@@ -21,6 +21,7 @@ public final class Meatscape {
         MeatscapeBlocks.register(context.getModEventBus());
         MeatscapeItems.register(context.getModEventBus());
         MeatscapeEntities.register(context.getModEventBus());
+        com.bleedthrough.meatscape.core.registry.MeatscapeFeatures.register(context.getModEventBus());
         context.registerConfig(ModConfig.Type.COMMON, MeatscapeConfig.SPEC);
         MeatscapeNetwork.register();
         LOGGER.info("Initializing Meatscape core");
