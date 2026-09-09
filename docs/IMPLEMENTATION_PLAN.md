@@ -265,7 +265,7 @@ Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
 - [x] 7.2 稀少 Dormant Rift 自然生成与 The Bleeding 演出技术闭环（2026-09-08）；真人表现验收待 Alpha；
 - [x] 7.3 Cauterization 与 White Sanctuary 技术闭环（2026-09-09）；真人操作与平衡验收待 Alpha／Beta；
 - [x] 7.4 营养膏与基础再生膜墙 Living Architecture 技术闭环（2026-09-09）；建筑手感、成本和平衡验收待 Alpha／Beta；
-- [ ] 7.5 第一批正式 Overworld 生态；
+- [x] 7.5 Grazer／Immune 第一批 Overworld 生态技术闭环（2026-09-09）；正式模型、贴图与主观生态平衡待 Alpha／Beta；
 - [ ] 7.6 知识状态驱动的研究任务；
 - [ ] 7.7 Core 独立专服长时间测试。
 

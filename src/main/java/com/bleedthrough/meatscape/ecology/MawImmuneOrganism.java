@@ -1,5 +1,8 @@
 package com.bleedthrough.meatscape.ecology;
 
+import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -29,6 +32,23 @@ public final class MawImmuneOrganism extends PathfinderMob {
         goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8));
         goalSelector.addGoal(7, new RandomLookAroundGoal(this));
         targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false,
-                player -> distanceToSqr(player) < 144));
+                target -> target instanceof Player player && immuneResponseActive()
+                        && !player.isCreative() && !player.isSpectator()
+                        && (!hasRestriction() || isWithinRestriction(player.blockPosition()))
+                        && distanceToSqr(player) < 144));
+    }
+
+    @Override public void aiStep() {
+        if (!level().isClientSide && !immuneResponseActive()) {
+            setTarget(null);
+            getNavigation().stop();
+        }
+        super.aiStep();
+    }
+
+    public boolean immuneResponseActive() {
+        return level().getDifficulty() != Difficulty.PEACEFUL
+                && (!(level() instanceof ServerLevel level)
+                || !MeatscapeWorldData.get(level.getServer()).isPaused());
     }
 }

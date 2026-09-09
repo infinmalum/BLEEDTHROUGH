@@ -1,4 +1,3 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": { "all": "meatscape:block/changed_stone" }
+  "parent": "meatscape:block/changed_stone"
 }
