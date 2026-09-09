@@ -2,6 +2,7 @@ package com.bleedthrough.meatscape.coherence.rift;
 
 import com.bleedthrough.meatscape.Meatscape;
 import com.bleedthrough.meatscape.coherence.MawCoherenceService;
+import com.bleedthrough.meatscape.coherence.thermal.ThermalRules;
 import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,10 +80,19 @@ public final class RiftFieldEvents {
         }
         int delta = Math.min(100, requestedDelta);
         ChunkPos pos = key.pos();
-        if (level.hasChunk(pos.x, pos.z)) {
-            MawCoherenceService.addFromRift(level, level.getChunk(pos.x, pos.z), delta);
+        int cap = ThermalRules.cap(level, pos);
+        data.capPendingCoherence(key, cap);
+        if (ThermalRules.suppressed(level, pos)) delta = 0;
+        // A fully frozen chunk gains at most one point per ten field updates.
+        // Use the same server-tick clock as the update trigger. Saved world time can
+        // have a different modulo-20 offset after restart and must not stall forever.
+        if (cap == 15) delta = server.getTickCount() % 200 == 0 ? Math.min(delta, 1) : 0;
+        LevelChunk loaded = level.getChunkSource().getChunkNow(pos.x, pos.z);
+        if (loaded != null) {
+            MawCoherenceService.addFromRift(level, loaded, delta);
         } else {
             data.addPendingCoherence(key, delta);
+            data.capPendingCoherence(key, cap);
         }
     }
 
@@ -94,9 +104,8 @@ public final class RiftFieldEvents {
         MeatscapeWorldData data = MeatscapeWorldData.get(level.getServer());
         DimensionChunkKey key = new DimensionChunkKey(level.dimension().location(), chunk.getPos());
         int pending = data.consumePendingCoherence(key);
-        if (pending > 0) {
-            MawCoherenceService.addFromRift(level, chunk, pending);
-        }
+        // Use the callback's chunk directly; querying its FULL future here can deadlock.
+        MawCoherenceService.addFromRift(level, chunk, pending);
     }
 
     private static ServerLevel level(MinecraftServer server, RiftRecord rift) {

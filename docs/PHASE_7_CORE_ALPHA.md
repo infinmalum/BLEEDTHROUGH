@@ -75,10 +75,38 @@
 
 ## 7.3 烧灼与 White Sanctuary
 
-- [ ] 可主动进行的烧灼实验、抑制效果与明确消耗；不把烧灼等同于世界快照恢复。
-- [ ] `#meatscape:white_sanctuary_biomes` 驱动极寒规则，精选默认群系；定义跨群系 chunk 的采样／边界。
-- [ ] 同步约束已加载与未加载抽象 Coherence，组织冻结与工业效率下降；避免卸载后绕过上限。
-- [ ] 来源恢复、玩家后建内容、永久 Scar 和保护区回归。
+- Git 基线（2026-09-09）：从已合并 PR #9 的 main `cfc499b` 开始实现。
+
+- [x] 可主动进行的烧灼实验、抑制效果与明确消耗；不把烧灼等同于世界快照恢复。
+- [x] `#meatscape:white_sanctuary_biomes` 驱动极寒规则，精选默认群系；定义跨群系 chunk 的采样／边界。
+- [x] 同步约束已加载与未加载抽象 Coherence，组织冻结与工业效率下降；避免卸载后绕过上限。
+- [x] 来源恢复、玩家后建内容、永久 Scar 和保护区回归。
+- [x] 客户端资源加载、普通专服启停与 schema v7 保存。
+- [ ] Alpha／Beta 人工验收：烧灼手感、极寒代价、多人实际交互及正式美术。
+
+### 7.3 自动验证记录（2026-09-09）
+
+- JDK 17 `clean build runGameTestServer` 最终通过：59 个 JUnit、23/23 required Forge GameTest，包含 Phase 0–7.2 回归。资源 JSON 全量解析和 `git diff --check` 通过。
+- 新增 JUnit 覆盖混合群系上限、v6 → v7 无历史迁移、biome ID 往返与可重新解释的标签成员、抑制保存／暂停／到期／刷新、未加载 pending 钳制。
+- 新增 GameTest 覆盖实际 chunk 的冷／暖样本、冷区上限、pending 加载合并、未知区块 BiomeSource 查询不强制加载、未加载抑制、冷列阻止演化且保留安全恢复路径、8 → 1 冷区加工与输入不足、打火石耐久、交互 DENY、玩家修改、BlockEntity、保护区与可移除覆膜、永久焦痕回退拒绝。
+- 初次全量回归发现烧灼测试的抑制状态污染后续共用 chunk；已用 `finally` 清理，重新全量执行通过。复查修正冷区慢速累积的时钟对齐，避免重启后世界时间与 server tick 偏移导致永久不累积。
+- 原始构建／测试日志保留在忽略目录 `run/phase7-3-verification.log`；依赖继续使用持久化 `~/.gradle`，不提交大型运行日志。
+- 客户端完成 Mod、纹理图集与 OpenAL 声音引擎初始化，无 Meatscape 资源缺失记录；随后手动终止开发实例。已知可选 flite 旁白库、原版音效／shader sampler 和开发 Realms 提示不计作本 Mod 错误。未将加载通过记为入世界美术／多人交互验收。日志：`run/phase7-3-client.log`。
+- 普通专服进入 `Done`，加载 schema v7、DORMANT；`meatscape inspect` 输出当前暖区 cap=100、frozenColumn=false、suppressionTicks=0。执行 `reload` 后再次查询正常，`stop` 完成所有维度保存并正常退出。日志：`run/phase7-3-server.log`；最终 Core JAR 约 209 KiB。
+
+### 7.3 实现边界与初始平衡值
+
+- 实验入口：潜行持打火石右击 `#meatscape:cauterizable` 中、有轻量来源记录且仍为预期演化方块的组织。成功消耗 1 耐久，当前 chunk Coherence 最多下降 10，抑制 1200 个服务端 tick（正常 TPS 下 60 秒）；重复成功实验只刷新时长，不无限叠加。全局 pause 时拒绝实验并冻结抑制计时；区块卸载仍消耗计时，服务器停止不消耗。
+- 烧灼固体自然组织留下 `charred_scar`；可移除覆膜只清为空气，不在建筑旁留下实体障碍。焦痕加入绝对保护／永久回退标签，即使残留来源记录也不自动恢复；玩家仍可手动挖除。烧灼不关闭 Rift、不推进终局、不启动区域 rollback。抑制结束后活跃 Rift 可再次扩张，玩家仍可选择保留或抵抗。
+- 不处理无来源组织、玩家后放内容、BlockEntity、Rift／Organ Core、受保护建筑主体；遵守已取消或 DENY 的交互事件、旁观／冒险限制和原版出生点保护。失败的组织烧灼不扣耐久，也不继续触发普通点火。正常非潜行点火仍为原版行为。
+- 新焦痕方块具有掉落、物品模型及「生组织 + 熔炉燃料 → 焦痕」烧炼配方；烧炼／放置焦痕不提供世界抑制，以免形成无来源的免费抑制。当前模型复用原版玄武岩纹理，不能视为正式美术验收。
+- White Sanctuary 默认群系为 Frozen Ocean、Deep Frozen Ocean、Ice Spikes、Frozen Peaks；不默认加入 Snowy Plains。通过 `#meatscape:white_sanctuary_biomes` 扩展，不使用纬度或是否下雪的泛化判断。
+- 采样契约：Overworld 每 chunk 在固定 Y=64 的 4×4 quart-biome 网格取 16 个样本，每个样本代表对应的 4×4 水平列，规则作用于整列高度。抽象上限为 `100 - floor(85 × 极寒样本数 / 16)`：全暖 100、半冷 58、全冷 15；局部冻结则按对应列判断，避免混合 chunk 的暖侧也被全部冻结。固定高度是本阶段明确的近似，不是地表高度扫描或三维气候模拟。
+- 冷列阻止正向转换及跨边界附着生长，现有组织保持原位、原恢复来源不变；已有恢复调度仍可有限恢复非永久内容。全冷 chunk 的 Rift 累积最多每 200 服务端 tick 增加 1 点，且不能超过 15；节拍使用与字段更新一致的服务端时钟，重启重新对齐。不生成巨型 Frozen Scar／White Wall 地标，也不批量改写既有组织外观。
+- 未加载区域只处理抽象值。已观察的相关 chunk 保存 16 个 biome ID，不保存 Holder／Chunk 引用；卸载前刷新已记录样本。没有历史样本时查询生成器 BiomeSource，不强制加载或生成地形；加载后实际 chunk 样本优先并再次钳制。标签成员不写死到存档，数据包重新定义标签后下一次查询即按新规则判断；未知 biome ID 按非极寒处理。管理员改写既有群系但尚无样本的卸载区块，首次加载时校正。
+- Heart Pump 冷列配方为 8 生组织 → 1 胶原，暖列仍为 2 → 1；这里以材料产率 25% 表达初期低效率，不新增机器计时器或改变注册 ID。输入不足不消耗；本阶段没有新增 Living Architecture 组件，其营养与冻结规则留给 7.4。
+- 世界 schema v6 → v7 增加可选 ThermalProfiles 和 Suppression；旧存档不虚构抑制历史。网络仍使用既有权威 Coherence DTO（协议 2），不发送全量 biome／抑制索引。`/meatscape inspect` 显示上限、当前列冻结状态和剩余抑制 tick。
+- 实际操作手感、极寒工业代价与正式焦痕／冻结美术留待 Alpha／Beta；本阶段自动测试和客户端加载不能替代真人评估。Nether 自然烧灼地貌与 Burning Wound 仍属 Phase 8。
 
 ## 7.4 资源与 Living Architecture
 

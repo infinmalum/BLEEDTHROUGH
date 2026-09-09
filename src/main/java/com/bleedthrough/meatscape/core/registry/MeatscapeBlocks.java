@@ -23,6 +23,7 @@ public final class MeatscapeBlocks {
             BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(8.0F, 1200.0F)));
     public static final RegistryObject<Block> CHANGED_STONE = block("changed_stone", () -> new Block(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.5F, 6.0F)));
+    public static final RegistryObject<Block> CHARRED_SCAR = block("charred_scar", () -> simple(MapColor.COLOR_BLACK, 1.5F));
     public static final RegistryObject<Block> DERMAL_FILM = block("dermal_film", () -> new Block(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PINK).strength(0.15F).noCollission()));
     public static final RegistryObject<Block> DERMAL_SOIL = block("dermal_soil", () -> simple(MapColor.COLOR_PINK, 0.7F));

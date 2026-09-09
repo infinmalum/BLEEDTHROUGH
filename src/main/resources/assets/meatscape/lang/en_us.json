@@ -1,4 +1,8 @@
 {
+  "block.meatscape.charred_scar": "Charred Scar",
+  "message.meatscape.pump_cost": "This pump needs %s Raw Tissue per Collagen (cold lowers efficiency).",
+  "message.meatscape.cauterized": "Cauterized: Coherence reduced by up to 10; local growth suppressed for 60 seconds. Scars remain.",
+  "message.meatscape.cauterize_refused": "Cannot cauterize: only recorded natural growth or removable film; protected structures and paused worlds are untouched.",
   "event.meatscape.bleeding": "The Bleeding",
   "block.meatscape.base_anchor": "Base Anchor",
   "block.meatscape.changed_stone": "Changed Stone",
