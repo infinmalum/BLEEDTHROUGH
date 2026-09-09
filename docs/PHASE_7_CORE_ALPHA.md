@@ -136,9 +136,29 @@
 
 ## 7.5 Overworld 生态
 
-- [ ] 完善已有 Grazer／Immune 的栖息地与招牌行为，逐个验证；不批量新增生物。
-- [ ] 受预算和局部密度约束的生成，难度／暂停／卸载行为明确。
-- [ ] 正式资产与玩法代码分开记录验收；占位贴图不能标作正式美术完成。
+- Git 基线（2026-09-09）：从已合并 PR #11 的 main `07476f3` 开始实现。
+
+- [x] 完善已有 Grazer／Immune 的栖息地与招牌行为，逐个验证；未批量新增生物。
+- [x] 受预算和局部密度约束的生成，难度／暂停／卸载行为明确。
+- [x] 正式资产与玩法代码分开记录验收；占位贴图未标作正式美术完成。
+- [ ] Alpha／Beta 人工验收：两种生物的正式模型／贴图／动画、生成频率、Grazer 摄食可读性、Immune 驱赶压力与多人体验。
+
+### 7.5 实现边界与默认参数
+
+- 两种既有实体只在 Overworld、世界阶段至少为 `BLEEDING`、附近区块已加载且候选列不属于 White Sanctuary 时由服务端生态循环尝试生成；不会为寻找栖息地加载或生成区块。Biome 与基底分别通过 `#meatscape:maw_grazer_habitats`、`#meatscape:immune_organism_habitats`、`#meatscape:grazer_food`、`#meatscape:immune_habitat` 扩展。默认两个 biome tag 接受 Overworld；Grazer 基底为 Nutrient Mound／Dermal Soil，Immune 基底为 Vascular Mat／Ossified Stone。
+- 每 200 个服务端 tick 执行一次，每个维度周期最多 4 次候选尝试；旁观玩家不提供候选。候选距玩家水平轴向 12–24 格，且同一周期不重复采样同一 chunk。32 格局部范围内 Grazer 上限 3、Immune 上限 1；Grazer 从 40 Coherence 开始出现，Immune 从 60 开始出现。
+- 和平难度不生成 Immune，已有 Immune 清除攻击目标但不被强制删除；其他难度下它只攻击 12 格内非创造、非旁观玩家。自然生成的 Immune 以生成点为 16 格限制中心，表达局部排异而不是理解整座基地或维护全局免疫网络。
+- Grazer 保留原版游荡、恐慌、繁殖和胶原引诱，并增加 8 格内寻找 `#meatscape:grazer_food` 的摄食行为；连续进食 40 tick 恢复 4 点生命并进入 600 tick 冷却，不删除或改写栖息地方块。全局 pause 冻结新生成、摄食／冷却与 Immune 攻击目标；普通游荡与物理仍由 Vanilla 管理。
+- 生态循环不保存 Level、Chunk、Player 或 Entity 引用，也不创建 chunk ticket。区块卸载后不执行生成或离线生态模拟；实体本身继续使用 Vanilla 区块序列化／卸载生命周期。本阶段不改变世界 schema 或网络协议。
+- Grazer 继续复用原版牛模型／贴图，Immune 继续复用原版僵尸模型／贴图，均只是可运行占位表现。客户端检查不构成正式模型、动画、轮廓、恐怖感或生成平衡验收。
+
+### 7.5 自动验证记录（2026-09-09）
+
+- JDK 17 `clean build runGameTestServer` 最终通过：62 个 JUnit、27/27 required Forge GameTest；Core JAR 约 234 KiB。新增纯策略测试覆盖维度、阶段、Coherence、极寒、pause、难度、密度与固定尝试预算，并审计运行事件类不持有跨 tick 世界／实体引用。
+- GameTest 使用真实数据包标签和实体注册验证 Grazer 在有效基底生成并恰好停在局部上限；分别验证 Grazer 摄食恢复／冷却、pause 冻结，以及 Immune 在 pause 时清除目标。第一次测试暴露以测试结构 heightmap 定位无法稳定指向手工基底，随后把生产 heightmap 入口与确定性精确位置测试入口分离；最终全量回归通过。
+- 全部资源 JSON 解析和 `git diff --check` 通过。构建依赖继续使用持久化 `~/.gradle`，原始验证日志保存在忽略目录 `run/phase7-5-verification.log`。
+- 客户端完成实体 renderer、纹理图集与声音引擎初始化后手动结束；复测同时修复 7.4 再生膜墙占位模型错误引用不存在的 Meatscape 贴图，之后无 Meatscape 缺失纹理记录。原版音效／shader sampler／Realms 开发提示不计作本 Mod 错误。
+- 普通专服进入 `Done`，加载 schema v7；数据包 `reload` 后 7 个配方与标签正常重载，`stop` 后全维度保存并正常退出。自动测试和主菜单加载未替代正式资产与真人生态体验验收。
 
 ## 7.6 知识驱动研究
 

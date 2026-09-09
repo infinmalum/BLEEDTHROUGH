@@ -1,4 +1,3 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": { "all": "meatscape:block/dermal_soil" }
+  "parent": "meatscape:block/dermal_soil"
 }
