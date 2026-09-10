@@ -171,6 +171,16 @@
 
 ## 7.7 长时间验证
 
-- [ ] 独立专服可重复的数小时 soak 场景：活跃／休眠 Rift、生态和工业并存，暂停、重载、重启与回退交替。
-- [ ] 保存 MSPT、堆内存趋势、队列长度、处理预算与存档增长原始记录；模拟 tick 压测不代替真实数小时运行。
+- Git 基线（2026-09-10）：从 7.6 Draft PR #13 的提交 `30ccbf7` 开始；合并后以 main 的对应 merge commit 复核。
+
+- [x] 可复用遥测基础：显式开启 `diagnostics.soakTelemetryEnabled=true` 后，专服每 1200 tick 将 CSV 追加至该存档的 `data/meatscape-soak.csv`。字段为 UTC 时间、server tick、MSPT、已用／最大堆、存档字节数、Rift 数、队列长度、处理量、调度耗时和 rollback job 数；默认关闭，不影响普通服务器。
+- [~] 真实独立专服数小时 soak 场景待执行：活跃／休眠 Rift、生态和工业并存，暂停、重载、重启与回退交替。当前没有可连接的真实观察者，不能伪称生态与多人路径已验证。
+- [~] 原始遥测记录待产生：模拟 tick 压测和 GameTest 回归不代替真实数小时运行。
+
+### 7.7 执行规程
+
+1. 使用新的、可保留的专服存档，启用遥测并保留 `data/meatscape-soak.csv`、服务器日志和存档目录大小；不得将日志或依赖写入系统临时目录。
+2. 由 OP 在已加载区域准备一个 active Rift，并保留一个未激活／休眠 Rift；放置 Heart Pump 与已喂养的受伤再生膜墙。至少一名真实观察者保持在生态测试区域，才可覆盖生态循环。
+3. 连续运行至少 3 小时。每 30 分钟记录 `/meatscape debug stats`、`/meatscape rollback status` 和 CSV；依次执行一次 pause/resume、一次数据包 `reload`、一次正常 stop/restart，并在已加载的安全转换区域运行一次有界 rollback。
+4. 验收时检查 CSV 中 MSPT、堆和存档字节数是否存在持续无界增长；检查队列与每 tick 处理量未超预算；重启后确认 Rift、膜墙、工业和 rollback 状态可继续。保留原始记录，异常必须附带复现步骤，不以压缩 tick 测试替代。
 - [ ] Core Alpha 发布前汇总技术缺口和人工验收项；The Maw、三终局实现和正式 Shader 不属于本 Phase。

@@ -30,6 +30,14 @@ public final class MeatscapeConfig {
             .comment("Observed server ticks before the first Bleeding event. Pause or absent local observers freeze it.")
             .defineInRange("progression.bleedingDelayTicks", 600, 0, 72000);
 
+    public static final ForgeConfigSpec.BooleanValue SOAK_TELEMETRY_ENABLED = BUILDER
+            .comment("Write bounded periodic dedicated-server soak samples to the world data directory.")
+            .define("diagnostics.soakTelemetryEnabled", false);
+
+    public static final ForgeConfigSpec.IntValue SOAK_TELEMETRY_INTERVAL_TICKS = BUILDER
+            .comment("Server ticks between soak samples. World-size measurement only runs when a sample is written.")
+            .defineInRange("diagnostics.soakTelemetryIntervalTicks", 1200, 20, 72000);
+
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private MeatscapeConfig() {
