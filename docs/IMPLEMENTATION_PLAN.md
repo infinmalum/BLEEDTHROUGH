@@ -8,7 +8,7 @@
 
 ## 当前状态
 
-2026-09-10 规划复核：PR #13、#14 均已合并，远端 main 为 `2ef4017`。下一步先完成研究反馈与遥测验收能力；具体任务、依赖和后续 Phase 8–10 拆分见 [后续开发路线](ROADMAP_REMAINING.md)。历史验证记录保持原样，最新覆盖边界以下述路线的复核为准。
+2026-09-10 8.1 复核：本地实施分支基于已合并 PR #15 的 `983796e`；ADR #16 的提交因远端目标分支未回到 main，已显式纳入本分支，避免遗漏前置契约。`test`（70 项）与 `runGameTestServer`（28 项）通过。真实客户端、真实专服玩家往返、重启后的玩家级往返、死亡掉落与多人网络验证仍为 `[~]`，不以自动测试替代。具体任务、依赖和后续 Phase 8–10 拆分见 [后续开发路线](ROADMAP_REMAINING.md)。
 
 - [x] Forge 1.20.1 / Forge 47.4.22 MDK 已导入
 - [x] JDK 17 与 Gradle 8.8 构建通过
@@ -276,6 +276,7 @@ Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
 ## Phase 8 — The Maw 与中后期系统
 
 - [x] 8.0 The Maw 维度契约（2026-09-10）：注册键、生成高度、开发入口映射、安全落点、重生／死亡、schema v8 迁移与票释放边界已在 [ADR 0001](decisions/0001-the-maw-dimension-contract.md) 固定；尚未实现维度或传送。
+- [~] 8.1 最小 The Maw 与安全往返（2026-09-10）：`meatscape:maw`、固定 Subdermal Expanse 占位群系、管理员首次绑定的 Maw Gateway、v7→v8 空集合迁移、持久化一对一同坐标链接、有界安全落点、短冷却与 `try/finally` portal ticket 释放已实现。JUnit 70 项和专服 GameTest 28 项通过；真实客户端／玩家专服／重启往返／死亡掉落／多人网络验证待进行。
 
 - The Maw 最小可长期生存版本；
 - Burning Wound 与 End Wormhole；

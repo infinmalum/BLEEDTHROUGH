@@ -1,0 +1,11 @@
+{
+  "type": "meatscape:maw",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "meatscape:subdermal_expanse"
+    },
+    "settings": "minecraft:overworld"
+  }
+}

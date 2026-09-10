@@ -22,5 +22,6 @@
   "item.meatscape.collagen": "胶原",
   "item.meatscape.living_poultice": "活体敷料",
   "entity.meatscape.maw_grazer": "深渊牧食者",
-  "entity.meatscape.immune_organism": "免疫生物"
+  "entity.meatscape.immune_organism": "免疫生物",
+  "block.meatscape.maw_gateway": "巨口入口"
 }

@@ -9,6 +9,7 @@ import com.bleedthrough.meatscape.coherence.rift.DimensionChunkKey;
 import com.bleedthrough.meatscape.coherence.rift.RiftRecord;
 import com.bleedthrough.meatscape.safety.ProtectedRegion;
 import com.bleedthrough.meatscape.coherence.rollback.RollbackJob;
+import com.bleedthrough.meatscape.world.maw.MawGatewayRecord;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -64,6 +65,48 @@ class MeatscapeWorldDataTest {
         assertFalse(migrated.isPaused());
         assertTrue(migrated.rifts().isEmpty());
         assertEquals(0, migrated.pendingChunkCount());
+    }
+
+    @Test
+    void versionSevenMigratesWithNoInventedMawGateways() {
+        CompoundTag fixture = new CompoundTag();
+        fixture.putInt(MeatscapeWorldData.SCHEMA_KEY, DataSchema.VERSION_7);
+
+        MeatscapeWorldData migrated = MeatscapeWorldData.load(fixture);
+
+        assertEquals(DataSchema.WORLD_CURRENT, migrated.schemaVersion());
+        assertTrue(migrated.mawGateways().isEmpty());
+        assertTrue(migrated.save(new CompoundTag()).contains(MeatscapeWorldData.MAW_GATEWAYS_KEY));
+    }
+
+    @Test
+    void mawGatewayRoundTripsAndResolvesItsOppositeEndpoint() {
+        MeatscapeWorldData data = new MeatscapeWorldData();
+        ResourceLocation overworld = ResourceLocation.withDefaultNamespace("overworld");
+        ResourceLocation maw = ResourceLocation.fromNamespaceAndPath("meatscape", "maw");
+        MawGatewayRecord gateway = new MawGatewayRecord(UUID.randomUUID(), overworld, new BlockPos(15, 72, -8),
+                maw, new BlockPos(15, 84, -8));
+        data.addMawGateway(gateway);
+
+        MeatscapeWorldData restored = MeatscapeWorldData.load(data.save(new CompoundTag()));
+
+        assertEquals(gateway, restored.findMawGateway(gateway.id()).orElseThrow());
+        assertEquals(new MawGatewayRecord.Endpoint(maw, gateway.destinationPosition()),
+                restored.findMawGateway(overworld, gateway.sourcePosition()).orElseThrow()
+                        .opposite(overworld, gateway.sourcePosition()).orElseThrow());
+    }
+
+    @Test
+    void malformedMawGatewayDoesNotPreventOtherWorldDataFromLoading() {
+        CompoundTag fixture = new CompoundTag();
+        fixture.putInt(MeatscapeWorldData.SCHEMA_KEY, DataSchema.VERSION_7);
+        CompoundTag malformed = new CompoundTag();
+        malformed.putString("SourceDimension", "not a resource location");
+        net.minecraft.nbt.ListTag gateways = new net.minecraft.nbt.ListTag();
+        gateways.add(malformed);
+        fixture.put(MeatscapeWorldData.MAW_GATEWAYS_KEY, gateways);
+
+        assertTrue(MeatscapeWorldData.load(fixture).mawGateways().isEmpty());
     }
 
     @Test void versionTwoAddsEmptyProtectionAndRegionsRoundTrip() {

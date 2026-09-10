@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.Block;
 import com.bleedthrough.meatscape.bioindustry.HeartPumpBlock;
 import com.bleedthrough.meatscape.coherence.rift.RiftCoreBlock;
 import com.bleedthrough.meatscape.architecture.RegenerativeMembraneBlock;
+import com.bleedthrough.meatscape.world.maw.MawGatewayBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -40,6 +41,8 @@ public final class MeatscapeBlocks {
     public static final RegistryObject<Block> REGENERATIVE_MEMBRANE = block("regenerative_membrane", () ->
             new RegenerativeMembraneBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PINK)
                     .strength(2.5F, 6.0F)));
+    public static final RegistryObject<Block> MAW_GATEWAY = block("maw_gateway", () -> new MawGatewayBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(8.0F, 1200.0F).lightLevel(state -> 5)));
 
     private MeatscapeBlocks() { }
 

@@ -13,7 +13,7 @@ The Maw 是独立、早已存在且按需生成的现实，不是 Overworld 的�
 ### 维度与世界生成
 
 - 注册名固定为 `meatscape:maw`；代码的 `MawDimensions.MAW` 是该键的唯一公共入口。已发布后不得重命名。
-- 维度使用独立的 `meatscape:maw` dimension type 与 noise settings；可用世界 seed 按 Minecraft 常规按需生成区块。不得预生成整个维度、复制 Overworld 区块或保存 Overworld 的地形快照。
+- 8.1 使用独立的 `meatscape:maw` dimension type；占位地形暂引用稳定的 `minecraft:overworld` noise preset，并以固定的 Subdermal Expanse 生物群系覆盖。自有 `meatscape:maw` noise settings 留给首次实际 Maw 地貌阶段：届时必须以经运行验证的数据定义替换，不能以未经验证的大型 vanilla JSON 拷贝作为 8.1 的附带内容。可用世界 seed 按 Minecraft 常规按需生成区块。不得预生成整个维度、复制 Overworld 区块或保存 Overworld 的地形快照。
 - 可构建高度为 `-64` 至 `319`（高度 384）。这给后续从 Surface Membrane 到 Neural Abyss 的垂直层留出空间，但不承诺 8.1 就填充全部层级。
 - 8.1 只提供一个明确的、低风险的 Subdermal Expanse 占位地形。它不执行 Maw Coherence 扩散、不会把 Overworld Feature 在运行期重放到其中，也不启动 Stoneblight 的对称传播。
 - 8.1 采用固定、安静的天空时间作为占位表现；后续独立的代谢周期替换它，不能通过悄悄改变普通日夜长度来实现。天气、呼吸／体液潮汐和 Shader 不是本子阶段前置项。
@@ -21,7 +21,7 @@ The Maw 是独立、早已存在且按需生成的现实，不是 Overworld 的�
 ### 入口与坐标
 
 - `MawTransitService` 是跨维度传送的唯一公共服务。入口方块、命令与未来自然入口都通过它，不直接在各自事件中调用 `changeDimension`。
-- 第一个开发入口以管理员命令创建并显式拥有一个 `GatewayId`。`GatewayId` 是 UUID；入口保存 source dimension、source block position、destination block position 与方向，作为未来可持久化世界记录的最小字段。8.1 第一次写入时，世界 schema 从 v7 升为 v8；v7 存档得到空的 gateway 集合，不虚构历史入口。
+- 第一个开发入口由管理员放置 `Maw Gateway` 并首次交互显式绑定，随后拥有一个 `GatewayId`。`GatewayId` 是 UUID；入口保存 source dimension、source block position、destination block position 与方向，作为未来可持久化世界记录的最小字段。8.1 第一次写入时，世界 schema 从 v7 升为 v8；v7 存档得到空的 gateway 集合，不虚构历史入口。
 - 所有入口采用一对一、**同坐标 X/Z** 映射。没有 8:1 比例、最近入口搜索或随机散布。后续 Burning Wound 与 End Wormhole 若有不同的落点选择，也必须建立自己的 `GatewayId` 链接，不能改变已存在链接的含义。
 - 首次进入时服务端只能加载目标入口所需的有限区块并创建有界 portal ticket；安全落点搜索限制在目标点附近 16 格水平、32 格垂直范围。找不到两格高、实体碰撞安全、有实心支撑的落点时，取消传送并保留玩家、物品和入口原状；不得无限扫描、强制加载大片区块，或把玩家丢入虚空。
 - 返回总是回到同一 `GatewayId` 的 source 坐标附近，使用相同的有界安全搜索。入口拆除或目标记录损坏时拒绝传送并记录可诊断错误；不能猜测其他入口或把玩家随机送到世界出生点。
