@@ -266,7 +266,7 @@ Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
 - [x] 7.3 Cauterization 与 White Sanctuary 技术闭环（2026-09-09）；真人操作与平衡验收待 Alpha／Beta；
 - [x] 7.4 营养膏与基础再生膜墙 Living Architecture 技术闭环（2026-09-09）；建筑手感、成本和平衡验收待 Alpha／Beta；
 - [x] 7.5 Grazer／Immune 第一批 Overworld 生态技术闭环（2026-09-09）；正式模型、贴图与主观生态平衡待 Alpha／Beta；
-- [ ] 7.6 知识状态驱动的研究任务；
+- [~] 7.6 知识状态驱动的研究任务：实现与自动化验证完成；真实玩家／多人验证待进行；
 - [ ] 7.7 Core 独立专服长时间测试。
 
 这一阶段仍不要求完整 The Maw、三结局或正式 Shader。

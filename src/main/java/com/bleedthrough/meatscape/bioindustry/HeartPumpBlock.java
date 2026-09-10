@@ -1,6 +1,8 @@
 package com.bleedthrough.meatscape.bioindustry;
 
 import com.bleedthrough.meatscape.core.registry.MeatscapeItems;
+import com.bleedthrough.meatscape.progression.KnowledgeObservation;
+import com.bleedthrough.meatscape.progression.PlayerKnowledge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -33,7 +35,10 @@ public final class HeartPumpBlock extends Block {
             held.shrink(cost);
             ItemStack result = new ItemStack(MeatscapeItems.COLLAGEN.get());
             if (!player.getInventory().add(result)) player.drop(result, false);
-            if (player instanceof ServerPlayer serverPlayer) serverPlayer.swing(hand, true);
+            if (player instanceof ServerPlayer serverPlayer) {
+                PlayerKnowledge.observe(serverPlayer, KnowledgeObservation.BIOINDUSTRY);
+                serverPlayer.swing(hand, true);
+            }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
