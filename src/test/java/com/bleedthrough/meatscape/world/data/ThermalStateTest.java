@@ -2,6 +2,7 @@ package com.bleedthrough.meatscape.world.data;
 
 import static org.junit.jupiter.api.Assertions.*;
 import com.bleedthrough.meatscape.coherence.rift.DimensionChunkKey;
+import com.bleedthrough.meatscape.core.migration.DataSchema;
 import java.util.Collections;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -27,7 +28,7 @@ class ThermalStateTest {
         var tag = new CompoundTag();
         tag.putInt("SchemaVersion", 6);
         var data = MeatscapeWorldData.load(tag);
-        assertEquals(7, data.schemaVersion());
+        assertEquals(DataSchema.WORLD_CURRENT, data.schemaVersion());
         assertTrue(data.thermalProfile(KEY).isEmpty());
         assertEquals(0, data.suppressionTicks(KEY));
     }

@@ -7,6 +7,7 @@ import com.bleedthrough.meatscape.coherence.data.MawCoherenceData;
 import com.bleedthrough.meatscape.core.migration.DataSchema;
 import com.bleedthrough.meatscape.safety.ProtectedRegion;
 import com.bleedthrough.meatscape.coherence.rollback.RollbackJob;
+import com.bleedthrough.meatscape.world.maw.MawGatewayRecord;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +31,7 @@ public final class MeatscapeWorldData extends SavedData {
     static final String VALUE_KEY = "Value";
     static final String PROTECTED_REGIONS_KEY = "ProtectedRegions";
     static final String ROLLBACK_JOBS_KEY = "RollbackJobs";
+    static final String MAW_GATEWAYS_KEY = "MawGateways";
 
     private final int schemaVersion;
     private WorldStage worldStage;
@@ -39,6 +41,7 @@ public final class MeatscapeWorldData extends SavedData {
     private final RiftSpatialIndex spatialIndex;
     private final Map<UUID, ProtectedRegion> protectedRegions;
     private final Map<UUID, RollbackJob> rollbackJobs;
+    private final Map<UUID, MawGatewayRecord> mawGateways;
     private net.minecraft.core.BlockPos bleedingOrigin;
     private int bleedingDelay;
     private int preludeElapsed = -1;
@@ -46,7 +49,7 @@ public final class MeatscapeWorldData extends SavedData {
     private final Map<DimensionChunkKey, Integer> suppressionTicks = new LinkedHashMap<>();
 
     public MeatscapeWorldData() {
-        this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of(), Map.of(), Map.of());
+        this(DataSchema.WORLD_CURRENT, WorldStage.DORMANT, false, Map.of(), Map.of(), Map.of(), Map.of(), Map.of());
         setDirty();
     }
 
@@ -57,7 +60,8 @@ public final class MeatscapeWorldData extends SavedData {
             Map<UUID, RiftRecord> rifts,
             Map<DimensionChunkKey, Integer> pendingCoherence,
             Map<UUID, ProtectedRegion> protectedRegions,
-            Map<UUID, RollbackJob> rollbackJobs) {
+            Map<UUID, RollbackJob> rollbackJobs,
+            Map<UUID, MawGatewayRecord> mawGateways) {
         this.schemaVersion = schemaVersion;
         this.worldStage = worldStage;
         this.paused = paused;
@@ -67,6 +71,7 @@ public final class MeatscapeWorldData extends SavedData {
         this.spatialIndex.rebuild(this.rifts.values());
         this.protectedRegions = new LinkedHashMap<>(protectedRegions);
         this.rollbackJobs = new LinkedHashMap<>(rollbackJobs);
+        this.mawGateways = new LinkedHashMap<>(mawGateways);
     }
 
     public static MeatscapeWorldData get(MinecraftServer server) {
@@ -103,8 +108,12 @@ public final class MeatscapeWorldData extends SavedData {
             RollbackJob job = RollbackJob.load((CompoundTag) jobTag);
             jobs.put(job.id(), job);
         }
+        Map<UUID, MawGatewayRecord> gateways = new LinkedHashMap<>();
+        for (Tag gatewayTag : tag.getList(MAW_GATEWAYS_KEY, Tag.TAG_COMPOUND)) {
+            MawGatewayRecord.load((CompoundTag) gatewayTag).ifPresent(gateway -> gateways.put(gateway.id(), gateway));
+        }
         MeatscapeWorldData data = new MeatscapeWorldData(
-                DataSchema.WORLD_CURRENT, stage, tag.getBoolean(PAUSED_KEY), rifts, pending, regions, jobs);
+                DataSchema.WORLD_CURRENT, stage, tag.getBoolean(PAUSED_KEY), rifts, pending, regions, jobs, gateways);
         if (stage == WorldStage.DORMANT && tag.contains("BleedingOrigin", Tag.TAG_LONG)) {
             data.bleedingOrigin = net.minecraft.core.BlockPos.of(tag.getLong("BleedingOrigin"));
             data.bleedingDelay = Math.max(0, Math.min(72_000, tag.getInt("BleedingDelay")));
@@ -155,6 +164,9 @@ public final class MeatscapeWorldData extends SavedData {
         ListTag jobTags = new ListTag();
         rollbackJobs.values().stream().map(RollbackJob::save).forEach(jobTags::add);
         tag.put(ROLLBACK_JOBS_KEY, jobTags);
+        ListTag gatewayTags = new ListTag();
+        mawGateways.values().stream().map(MawGatewayRecord::save).forEach(gatewayTags::add);
+        tag.put(MAW_GATEWAYS_KEY, gatewayTags);
         ListTag profiles = new ListTag();
         thermalProfiles.forEach((key, profile) -> {
             CompoundTag entry = key.save();
@@ -377,6 +389,24 @@ public final class MeatscapeWorldData extends SavedData {
         if (rollbackJobs.remove(id) == null) return false;
         setDirty();
         return true;
+    }
+
+    public Collection<MawGatewayRecord> mawGateways() {
+        return List.copyOf(mawGateways.values());
+    }
+
+    public Optional<MawGatewayRecord> findMawGateway(UUID id) {
+        return Optional.ofNullable(mawGateways.get(id));
+    }
+
+    public Optional<MawGatewayRecord> findMawGateway(net.minecraft.resources.ResourceLocation dimension,
+            net.minecraft.core.BlockPos position) {
+        return mawGateways.values().stream().filter(gateway -> gateway.contains(dimension, position)).findFirst();
+    }
+
+    public void addMawGateway(MawGatewayRecord gateway) {
+        mawGateways.put(gateway.id(), gateway);
+        setDirty();
     }
 
     public void rollbackProgressed() {

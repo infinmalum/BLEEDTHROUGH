@@ -10,7 +10,8 @@ public final class DataSchema {
     public static final int VERSION_5 = 5;
     public static final int VERSION_6 = 6;
     public static final int VERSION_7 = 7;
-    public static final int WORLD_CURRENT = VERSION_7;
+    public static final int VERSION_8 = 8;
+    public static final int WORLD_CURRENT = VERSION_8;
     public static final int COHERENCE_CURRENT = VERSION_1;
 
     private DataSchema() {

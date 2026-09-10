@@ -22,5 +22,6 @@
   "item.meatscape.collagen": "Collagen",
   "item.meatscape.living_poultice": "Living Poultice",
   "entity.meatscape.maw_grazer": "Maw Grazer",
-  "entity.meatscape.immune_organism": "Immune Organism"
+  "entity.meatscape.immune_organism": "Immune Organism",
+  "block.meatscape.maw_gateway": "Maw Gateway"
 }
