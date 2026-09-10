@@ -275,6 +275,8 @@ Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
 
 ## Phase 8 — The Maw 与中后期系统
 
+- [x] 8.0 The Maw 维度契约（2026-09-10）：注册键、生成高度、开发入口映射、安全落点、重生／死亡、schema v8 迁移与票释放边界已在 [ADR 0001](decisions/0001-the-maw-dimension-contract.md) 固定；尚未实现维度或传送。
+
 - The Maw 最小可长期生存版本；
 - Burning Wound 与 End Wormhole；
 - 代表性 Maw 群系与生态 Archetype；
