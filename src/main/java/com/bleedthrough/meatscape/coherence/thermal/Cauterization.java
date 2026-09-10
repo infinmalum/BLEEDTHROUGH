@@ -9,6 +9,8 @@ import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
 import com.bleedthrough.meatscape.safety.ChunkSafetyService;
 import com.bleedthrough.meatscape.safety.MeatscapeBlockTags;
 import com.bleedthrough.meatscape.world.data.MeatscapeWorldData;
+import com.bleedthrough.meatscape.progression.KnowledgeObservation;
+import com.bleedthrough.meatscape.progression.PlayerKnowledge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -66,6 +68,9 @@ public final class Cauterization {
         if (player.isSpectator() || !player.getAbilities().mayBuild || !level.mayInteract(player, event.getPos())) return;
         if (apply(level, event.getPos())) {
             held.hurtAndBreak(1, player, entity -> entity.broadcastBreakEvent(event.getHand()));
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                PlayerKnowledge.observe(serverPlayer, KnowledgeObservation.CAUTERIZATION);
+            }
             player.displayClientMessage(Component.translatable("message.meatscape.cauterized"), true);
         } else player.displayClientMessage(Component.translatable("message.meatscape.cauterize_refused"), true);
     }
