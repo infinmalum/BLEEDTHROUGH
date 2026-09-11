@@ -30,3 +30,8 @@
 - AI-generated assets require Blockbench viewport and in-game visual review.
 - Complete features as small vertical loops: code, data, assets, automated tests, client verification, and dedicated-server verification.
 - Do not batch-generate unverified blocks, entities, or content variants.
+
+## Phase review scope
+
+- Before starting a Phase, reread this file and inspect Git/PR status.
+- Reread only the implementation-plan, roadmap, ADR, and design-document sections that define the current subphase and its direct prerequisites or interfaces. Do not reread unrelated completed or future phases in full.

@@ -9,6 +9,7 @@ import com.bleedthrough.meatscape.bioindustry.HeartPumpBlock;
 import com.bleedthrough.meatscape.coherence.rift.RiftCoreBlock;
 import com.bleedthrough.meatscape.architecture.RegenerativeMembraneBlock;
 import com.bleedthrough.meatscape.world.maw.MawGatewayBlock;
+import com.bleedthrough.meatscape.world.maw.NutrientMoundBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -31,7 +32,9 @@ public final class MeatscapeBlocks {
     public static final RegistryObject<Block> DERMAL_SOIL = block("dermal_soil", () -> simple(MapColor.COLOR_PINK, 0.7F));
     public static final RegistryObject<Block> OSSIFIED_STONE = block("ossified_stone", () -> simple(MapColor.QUARTZ, 2.0F));
     public static final RegistryObject<Block> VASCULAR_MAT = block("vascular_mat", () -> simple(MapColor.COLOR_RED, 0.5F));
-    public static final RegistryObject<Block> NUTRIENT_MOUND = block("nutrient_mound", () -> simple(MapColor.COLOR_BROWN, 0.8F));
+    public static final RegistryObject<Block> NUTRIENT_MOUND = block("nutrient_mound", () -> new NutrientMoundBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BROWN).strength(0.8F)));
+    public static final RegistryObject<Block> DERMAL_PANEL = block("dermal_panel", () -> simple(MapColor.COLOR_PINK, 1.2F));
     public static final RegistryObject<Block> GESTATION_POD = block("gestation_pod", () -> simple(MapColor.COLOR_PURPLE, 1.0F));
     public static final RegistryObject<Block> RIFT_CORE = block("rift_core", () -> new RiftCoreBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(6.0F, 1200.0F)

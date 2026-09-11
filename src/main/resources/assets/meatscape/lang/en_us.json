@@ -23,5 +23,9 @@
   "item.meatscape.living_poultice": "Living Poultice",
   "entity.meatscape.maw_grazer": "Maw Grazer",
   "entity.meatscape.immune_organism": "Immune Organism",
-  "block.meatscape.maw_gateway": "Maw Gateway"
+  "block.meatscape.maw_gateway": "Maw Gateway",
+  "block.meatscape.dermal_panel": "Dermal Panel",
+  "item.meatscape.prepared_tissue": "Prepared Tissue",
+  "effect.meatscape.maw_pressure": "Maw Pressure",
+  "effect.meatscape.maw_adaptation": "Maw Adaptation"
 }
