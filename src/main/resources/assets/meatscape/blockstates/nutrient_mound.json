@@ -1,1 +1,1 @@
-{"variants":{"":{"model":"meatscape:block/nutrient_mound"}}}
+{"variants":{"nourished=false":{"model":"meatscape:block/nutrient_mound"},"nourished=true":{"model":"meatscape:block/nutrient_mound"}}}

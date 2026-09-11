@@ -2,6 +2,9 @@ package com.bleedthrough.meatscape.gametest;
 
 import com.bleedthrough.meatscape.Meatscape;
 import com.bleedthrough.meatscape.world.maw.MawDimensions;
+import com.bleedthrough.meatscape.world.maw.NutrientMoundBlock;
+import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
+import com.bleedthrough.meatscape.core.registry.MeatscapeItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -24,6 +27,24 @@ public final class MawGameTests {
         helper.assertTrue(maw != null && maw.getBiome(new BlockPos(0, 64, 0)).unwrapKey()
                         .map(key -> key.location().equals(MawDimensions.MAW_ID.withPath("subdermal_expanse"))).orElse(false),
                 "The Maw is not using the fixed Subdermal Expanse placeholder biome");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase82Maw")
+    public static void nutrientMoundHarvestAndScheduledRegrowthAreBounded(GameTestHelper helper) {
+        var level = helper.getLevel();
+        BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
+        var mound = MeatscapeBlocks.NUTRIENT_MOUND.get();
+        level.setBlockAndUpdate(pos, mound.defaultBlockState());
+        var player = helper.makeMockPlayer();
+        mound.use(level.getBlockState(pos), level, pos, player, net.minecraft.world.InteractionHand.MAIN_HAND,
+                new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos),
+                        net.minecraft.core.Direction.UP, pos, false));
+        helper.assertTrue(!level.getBlockState(pos).getValue(NutrientMoundBlock.NOURISHED), "Harvest did not deplete mound");
+        helper.assertTrue(player.getInventory().contains(new net.minecraft.world.item.ItemStack(MeatscapeItems.RAW_TISSUE.get())),
+                "Harvest did not grant Raw Tissue");
+        mound.tick(level.getBlockState(pos), level, pos, level.random);
+        helper.assertTrue(level.getBlockState(pos).getValue(NutrientMoundBlock.NOURISHED), "Scheduled regrowth did not restore mound");
         helper.succeed();
     }
 }

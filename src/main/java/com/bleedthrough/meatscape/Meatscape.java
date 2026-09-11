@@ -6,6 +6,7 @@ import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
 import com.bleedthrough.meatscape.core.registry.MeatscapeBlockEntities;
 import com.bleedthrough.meatscape.core.registry.MeatscapeEntities;
 import com.bleedthrough.meatscape.core.registry.MeatscapeItems;
+import com.bleedthrough.meatscape.core.registry.MeatscapeEffects;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -22,6 +23,7 @@ public final class Meatscape {
         MeatscapeBlocks.register(context.getModEventBus());
         MeatscapeBlockEntities.register(context.getModEventBus());
         MeatscapeItems.register(context.getModEventBus());
+        MeatscapeEffects.register(context.getModEventBus());
         MeatscapeEntities.register(context.getModEventBus());
         com.bleedthrough.meatscape.core.registry.MeatscapeFeatures.register(context.getModEventBus());
         context.registerConfig(ModConfig.Type.COMMON, MeatscapeConfig.SPEC);
