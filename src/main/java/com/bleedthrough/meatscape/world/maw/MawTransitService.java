@@ -46,6 +46,23 @@ public final class MawTransitService {
         return bindAndEnter(player, sourceLevel, sourcePosition, data, now);
     }
 
+    /** Natural Nether entry; it shares records, safe placement, cooldowns, and ticket scope with developer gateways. */
+    public static TransitResult useBurningWound(ServerPlayer player, ServerLevel sourceLevel, BlockPos sourcePosition) {
+        long now = sourceLevel.getGameTime();
+        if (COOLDOWNS.getOrDefault(player.getUUID(), Long.MIN_VALUE) > now) return TransitResult.COOLDOWN;
+        MeatscapeWorldData data = MeatscapeWorldData.get(sourceLevel.getServer());
+        Optional<MawGatewayRecord> existing = data.findMawGateway(sourceLevel.dimension().location(), sourcePosition);
+        TransitResult result = existing.isPresent()
+                ? travelExisting(player, sourceLevel, sourcePosition, existing.orElseThrow(), now)
+                : sourceLevel.dimension().equals(Level.NETHER)
+                        ? bindAndEnter(player, sourceLevel, sourcePosition, data, now)
+                        : TransitResult.UNBOUND;
+        if (result == TransitResult.SUCCESS && sourceLevel.dimension().equals(Level.NETHER)) {
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.CONFUSION, 100, 0));
+        }
+        return result;
+    }
+
     private static TransitResult bindAndEnter(ServerPlayer player, ServerLevel sourceLevel, BlockPos sourcePosition,
             MeatscapeWorldData data, long now) {
         ServerLevel maw = sourceLevel.getServer().getLevel(MawDimensions.MAW);
@@ -106,7 +123,7 @@ public final class MawTransitService {
         targetLevel.getChunkSource().addRegionTicket(TicketType.PORTAL, chunk, 3, target.position());
         try {
             targetLevel.getChunk(chunk.x, chunk.z);
-            if (!targetLevel.getBlockState(target.position()).is(MeatscapeBlocks.MAW_GATEWAY.get())) {
+            if (!isEndpoint(targetLevel.getBlockState(target.position()))) {
                 Meatscape.LOGGER.warn("Maw Gateway {} target {} in {} is missing", gateway.id(), target.position(), target.dimension());
                 return TransitResult.TARGET_MISSING;
             }
@@ -121,6 +138,10 @@ public final class MawTransitService {
         } finally {
             targetLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL, chunk, 3, target.position());
         }
+    }
+
+    private static boolean isEndpoint(BlockState state) {
+        return state.is(MeatscapeBlocks.MAW_GATEWAY.get()) || state.is(MeatscapeBlocks.BURNING_WOUND.get());
     }
 
     /** Searches only the portal's already-ticketed chunk and never scans farther than the ADR bounds. */

@@ -6,6 +6,7 @@ import java.util.Optional;
 /** Stable, per-player observations; they are not a linear quest chapter. */
 public enum KnowledgeObservation {
     RIFT("observed_rift"),
+    MAW("observed_maw"),
     CAUTERIZATION("observed_cauterization"),
     WHITE_SANCTUARY("observed_white_sanctuary"),
     BIOINDUSTRY("operated_heart_pump");
