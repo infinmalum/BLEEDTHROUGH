@@ -10,6 +10,7 @@ import com.bleedthrough.meatscape.coherence.rift.RiftCoreBlock;
 import com.bleedthrough.meatscape.architecture.RegenerativeMembraneBlock;
 import com.bleedthrough.meatscape.world.maw.MawGatewayBlock;
 import com.bleedthrough.meatscape.world.maw.NutrientMoundBlock;
+import com.bleedthrough.meatscape.world.nether.BurningWoundBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -46,6 +47,8 @@ public final class MeatscapeBlocks {
                     .strength(2.5F, 6.0F)));
     public static final RegistryObject<Block> MAW_GATEWAY = block("maw_gateway", () -> new MawGatewayBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(8.0F, 1200.0F).lightLevel(state -> 5)));
+    public static final RegistryObject<Block> BURNING_WOUND = BLOCKS.register("burning_wound", () -> new BurningWoundBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(8.0F, 1200.0F).lightLevel(state -> 9)));
 
     private MeatscapeBlocks() { }
 
