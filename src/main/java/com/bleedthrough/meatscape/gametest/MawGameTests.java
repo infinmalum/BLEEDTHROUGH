@@ -58,4 +58,11 @@ public final class MawGameTests {
                 "End Wormhole must remain a natural-only entrance without a BlockItem");
         helper.succeed();
     }
+
+    @GameTest(template = "empty", batch = "phase85Canopy")
+    public static void vascularCanopyFeatureIsRegistered(GameTestHelper helper) {
+        helper.assertTrue(ForgeRegistries.FEATURES.containsKey(ResourceLocation.fromNamespaceAndPath(Meatscape.MOD_ID, "vascular_canopy")),
+                "Vascular Canopy feature was not registered");
+        helper.succeed();
+    }
 }
