@@ -3,6 +3,7 @@ package com.bleedthrough.meatscape.core.registry;
 import com.bleedthrough.meatscape.Meatscape;
 import com.bleedthrough.meatscape.world.overworld.DormantRiftFeature;
 import com.bleedthrough.meatscape.world.maw.MawNutrientMoundFeature;
+import com.bleedthrough.meatscape.world.maw.VascularCanopyFeature;
 import com.bleedthrough.meatscape.world.nether.BurningWoundFeature;
 import com.bleedthrough.meatscape.world.end.EndWormholeFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -15,6 +16,7 @@ public final class MeatscapeFeatures {
     static {
         FEATURES.register("dormant_rift", DormantRiftFeature::new);
         FEATURES.register("maw_nutrient_mound", MawNutrientMoundFeature::new);
+        FEATURES.register("vascular_canopy", VascularCanopyFeature::new);
         FEATURES.register("burning_wound", BurningWoundFeature::new);
         FEATURES.register("end_wormhole", EndWormholeFeature::new);
     }

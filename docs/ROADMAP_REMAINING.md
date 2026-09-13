@@ -67,7 +67,7 @@
 | [~] 8.2 早期生存循环 | 8.1 | 已实现 Raw Tissue → Prepared Tissue 的可再生链、Nutrient Paste 适应与 Dermal Panel 基材 | JUnit 与 29 项专服 GameTest 通过；真实远征资源密度、压力强度、离开效果和掉落／资源复制待验 |
 | [~] 8.3 Burning Wound | 8.1–8.2 | 已实现稀有自然下界入口、焦痕、独立链接、受控视觉风险与观察记录；边界见 [ADR 0002](decisions/0002-burning-wound-contract.md) | `test` 与 29 项专服 GameTest 通过；自然发现、进入／返回、重启、目标缺失、边界与真实危险体验待验 |
 | [~] 8.4 End Wormhole | 8.1–8.2 | 已实现仅在 Outer End 新生成区块出现的稀有稳定入口、无物品入口、独立链接及共用安全传送层；边界见 [ADR 0003](decisions/0003-end-wormhole-contract.md) | Java 17 `test` 与专服 GameTest 30 项通过（含无 BlockItem 契约）；真实发现、进入／返回、重启、边界和多人待验；不以杀龙或 Shader 为前置 |
-| 8.5 代表生态与地貌 | 8.2 | 首先一个 Vascular Canopy 场景；每 PR 一种生态或一种局部地貌 | 导航、生成密度、局部行为、卸载、资源／声音和可读性；不一次铺满所有 Maw 群系 |
+| [~] 8.5 代表生态与地貌 | 8.2 | 已实现 Subdermal Expanse 中低频、静态且单 chunk 有界的 Vascular Canopy 小场景；边界见 [ADR 0004](decisions/0004-vascular-canopy-scene-contract.md) | Java 17 `test` 与专服 GameTest 31 项通过；真实新区块密度、导航可读性、卸载／重载、资源／声音与正式视觉资产待验；不一次铺满所有 Maw 群系 |
 | 8.6 Hematic 基础 | 8.2 | 独立 Core 的一种流体、压力来源、运输段和一个负载 | 输入／输出守恒，拆接／卸载／重启无复制，网络有界，冻结行为，旧 Heart Pump ID 兼容 |
 | 8.7 Living 网络 | 8.6 | 将营养输送接入已有膜墙，再增一个可见用途组件 | 连接变更预算、循环网络、断供、拆除与保护；不保存卸载对象引用 |
 | 8.8 Enzymatic | 8.6 | 一台处理组件、一条催化或废料再利用配方 | 容器和流体守恒、配方 reload、停机续跑与工业用途 |
