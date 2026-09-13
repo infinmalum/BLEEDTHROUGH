@@ -281,6 +281,7 @@ Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
 - [~] 8.3 Burning Wound（2026-09-13）：稀有 Nether 生成的无物品入口、焦痕、独立 GatewayId、共享有界传送和短暂 Spatial Shear 已实现；成功通过时记录烧灼与 Maw 观察。`test` 与专服 GameTest 29 项通过；自然发现、进入／返回、重启、目标缺失、边界与真实危险体验待进行。
 - [~] 8.4 End Wormhole（2026-09-13）：仅 Outer End 新生成区块中的稀有 End Stone 表面、无物品入口，独立 GatewayId 与既有有界安全往返已实现；成功通过时记录 Wormhole 与 Maw 观察，边界见 [ADR 0003](decisions/0003-end-wormhole-contract.md)。Java 17 `test` 通过，专服 GameTest 30 项通过（含无 BlockItem 契约）；真实发现、进入／返回、重启、边界与多人体验待进行。
 - [~] 8.5 Vascular Canopy 场景（2026-09-13）：现有 Subdermal Expanse 中的低频、worldgen-only 静态 Vascular Mat 树冠已实现；单场景最多 27 方块、只写入生成中心 chunk、冲突时拒绝且无运行时扩散，边界见 [ADR 0004](decisions/0004-vascular-canopy-scene-contract.md)。Java 17 `test` 通过，专服 GameTest 31 项通过；真实新区块密度、导航可读性、卸载／重载、资源与正式视觉资产待进行。
+- [~] 8.6 Hematic 基础（2026-09-13）：保留 Heart Pump ID 与旧加工行为，新增有界 Hematic 容量、定向 Artery 和耗液红石 Actuator；边界见 [ADR 0005](decisions/0005-hematic-foundation-contract.md)。Java 17 `test` 与专服 GameTest 32 项通过；真实拆接／重启、玩家布局、平衡和正式资产待进行。
 
 - The Maw 最小可长期生存版本；
 - Burning Wound 与 End Wormhole；

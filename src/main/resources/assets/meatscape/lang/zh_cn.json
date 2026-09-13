@@ -29,5 +29,7 @@
   "block.meatscape.dermal_panel": "真皮板",
   "item.meatscape.prepared_tissue": "熟制组织",
   "effect.meatscape.maw_pressure": "巨口压力",
-  "effect.meatscape.maw_adaptation": "巨口适应"
+  "effect.meatscape.maw_adaptation": "巨口适应",
+  "block.meatscape.artery": "血管",
+  "block.meatscape.hematic_actuator": "血液执行器"
 }

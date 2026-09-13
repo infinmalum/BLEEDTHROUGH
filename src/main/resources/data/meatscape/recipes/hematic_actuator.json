@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":[" C ","PHP"," C "],"key":{"C":{"item":"meatscape:collagen"},"H":{"item":"meatscape:heart_pump"},"P":{"item":"meatscape:dermal_panel"}},"result":{"item":"meatscape:hematic_actuator"}}
