@@ -279,6 +279,7 @@ Alpha／Beta 体验验收（2026-09-08 按项目所有者安排调整）：
 - [~] 8.1 最小 The Maw 与安全往返（2026-09-10）：`meatscape:maw`、固定 Subdermal Expanse 占位群系、管理员首次绑定的 Maw Gateway、v7→v8 空集合迁移、持久化一对一同坐标链接、有界安全落点、短冷却与 `try/finally` portal ticket 释放已实现。JUnit 70 项和专服 GameTest 28 项通过；真实客户端／玩家专服／重启往返／死亡掉落／多人网络验证待进行。
 - [~] 8.2 早期生存循环（2026-09-11）：Subdermal Expanse 的低密度 Nutrient Mound 提供可再生 Raw Tissue；Raw Tissue 可烹饪为 Prepared Tissue，Nutrient Paste 提供短暂 Maw Adaptation，未适应者承受 Maw Pressure，离开维度立即清除两种临时效果；Dermal Panel 为第一种基础建材。`test` 通过，专服 GameTest 29 项通过（含收获／再生）；真实 Maw 远征的资源密度、压力强度、离开效果与掉落／资源复制验证待进行。
 - [~] 8.3 Burning Wound（2026-09-13）：稀有 Nether 生成的无物品入口、焦痕、独立 GatewayId、共享有界传送和短暂 Spatial Shear 已实现；成功通过时记录烧灼与 Maw 观察。`test` 与专服 GameTest 29 项通过；自然发现、进入／返回、重启、目标缺失、边界与真实危险体验待进行。
+- [~] 8.4 End Wormhole（2026-09-13）：仅 Outer End 新生成区块中的稀有 End Stone 表面、无物品入口，独立 GatewayId 与既有有界安全往返已实现；成功通过时记录 Wormhole 与 Maw 观察，边界见 [ADR 0003](decisions/0003-end-wormhole-contract.md)。Java 17 `test` 通过，专服 GameTest 30 项通过（含无 BlockItem 契约）；真实发现、进入／返回、重启、边界与多人体验待进行。
 
 - The Maw 最小可长期生存版本；
 - Burning Wound 与 End Wormhole；

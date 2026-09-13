@@ -8,8 +8,10 @@ import com.bleedthrough.meatscape.core.registry.MeatscapeItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.registries.ForgeRegistries;
 
 /** Runtime data-pack verification for the minimum 8.1 dimension contract. */
 @GameTestHolder(Meatscape.MOD_ID)
@@ -45,6 +47,15 @@ public final class MawGameTests {
                 "Harvest did not grant Raw Tissue");
         mound.tick(level.getBlockState(pos), level, pos, level.random);
         helper.assertTrue(level.getBlockState(pos).getValue(NutrientMoundBlock.NOURISHED), "Scheduled regrowth did not restore mound");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase84Wormhole")
+    public static void endWormholeIsRegisteredWithoutPlaceableItem(GameTestHelper helper) {
+        helper.assertTrue(MeatscapeBlocks.END_WORMHOLE.get().defaultBlockState().is(MeatscapeBlocks.END_WORMHOLE.get()),
+                "End Wormhole block was not registered");
+        helper.assertTrue(!ForgeRegistries.ITEMS.containsKey(ResourceLocation.fromNamespaceAndPath(Meatscape.MOD_ID, "end_wormhole")),
+                "End Wormhole must remain a natural-only entrance without a BlockItem");
         helper.succeed();
     }
 }

@@ -9,8 +9,10 @@ class PlayerKnowledgeDataTest {
         AtomicInteger dirty = new AtomicInteger(); PlayerKnowledgeData data = new PlayerKnowledgeData(dirty::incrementAndGet);
         assertTrue(data.observe(KnowledgeObservation.RIFT)); assertFalse(data.observe(KnowledgeObservation.RIFT));
         assertTrue(data.observe(KnowledgeObservation.CAUTERIZATION)); assertEquals(2, dirty.get());
+        assertTrue(data.observe(KnowledgeObservation.WORMHOLE)); assertEquals(3, dirty.get());
         PlayerKnowledgeData loaded = new PlayerKnowledgeData(() -> { }); loaded.load(data.save());
         assertTrue(loaded.observed(KnowledgeObservation.RIFT)); assertTrue(loaded.observed(KnowledgeObservation.CAUTERIZATION));
+        assertTrue(loaded.observed(KnowledgeObservation.WORMHOLE));
         assertFalse(loaded.observed(KnowledgeObservation.BIOINDUSTRY));
     }
     @Test void unknownAndLegacyDataDoNotInventObservations() {
