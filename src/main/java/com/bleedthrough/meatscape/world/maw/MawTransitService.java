@@ -63,6 +63,17 @@ public final class MawTransitService {
         return result;
     }
 
+    /** Stable natural Outer End entry using the same persisted mapping and failure semantics. */
+    public static TransitResult useEndWormhole(ServerPlayer player, ServerLevel sourceLevel, BlockPos sourcePosition) {
+        long now = sourceLevel.getGameTime();
+        if (COOLDOWNS.getOrDefault(player.getUUID(), Long.MIN_VALUE) > now) return TransitResult.COOLDOWN;
+        MeatscapeWorldData data = MeatscapeWorldData.get(sourceLevel.getServer());
+        Optional<MawGatewayRecord> existing = data.findMawGateway(sourceLevel.dimension().location(), sourcePosition);
+        if (existing.isPresent()) return travelExisting(player, sourceLevel, sourcePosition, existing.orElseThrow(), now);
+        return sourceLevel.dimension().equals(Level.END)
+                ? bindAndEnter(player, sourceLevel, sourcePosition, data, now) : TransitResult.UNBOUND;
+    }
+
     private static TransitResult bindAndEnter(ServerPlayer player, ServerLevel sourceLevel, BlockPos sourcePosition,
             MeatscapeWorldData data, long now) {
         ServerLevel maw = sourceLevel.getServer().getLevel(MawDimensions.MAW);
@@ -141,7 +152,8 @@ public final class MawTransitService {
     }
 
     private static boolean isEndpoint(BlockState state) {
-        return state.is(MeatscapeBlocks.MAW_GATEWAY.get()) || state.is(MeatscapeBlocks.BURNING_WOUND.get());
+        return state.is(MeatscapeBlocks.MAW_GATEWAY.get()) || state.is(MeatscapeBlocks.BURNING_WOUND.get())
+                || state.is(MeatscapeBlocks.END_WORMHOLE.get());
     }
 
     /** Searches only the portal's already-ticketed chunk and never scans farther than the ADR bounds. */

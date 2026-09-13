@@ -7,6 +7,7 @@ import java.util.Optional;
 public enum KnowledgeObservation {
     RIFT("observed_rift"),
     MAW("observed_maw"),
+    WORMHOLE("observed_wormhole"),
     CAUTERIZATION("observed_cauterization"),
     WHITE_SANCTUARY("observed_white_sanctuary"),
     BIOINDUSTRY("operated_heart_pump");
