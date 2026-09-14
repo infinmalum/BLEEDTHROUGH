@@ -69,7 +69,7 @@
 | [~] 8.4 End Wormhole | 8.1–8.2 | 已实现仅在 Outer End 新生成区块出现的稀有稳定入口、无物品入口、独立链接及共用安全传送层；边界见 [ADR 0003](decisions/0003-end-wormhole-contract.md) | Java 17 `test` 与专服 GameTest 30 项通过（含无 BlockItem 契约）；真实发现、进入／返回、重启、边界和多人待验；不以杀龙或 Shader 为前置 |
 | [~] 8.5 代表生态与地貌 | 8.2 | 已实现 Subdermal Expanse 中低频、静态且单 chunk 有界的 Vascular Canopy 小场景；边界见 [ADR 0004](decisions/0004-vascular-canopy-scene-contract.md) | Java 17 `test` 与专服 GameTest 31 项通过；真实新区块密度、导航可读性、卸载／重载、资源／声音与正式视觉资产待验；不一次铺满所有 Maw 群系 |
 | [~] 8.6 Hematic 基础 | 8.2 | 已实现 Core-only 有界 Hematic 容量、Heart Pump 来源、定向 Artery 和红石 Actuator；边界见 [ADR 0005](decisions/0005-hematic-foundation-contract.md) | Java 17 `test` 与专服 GameTest 32 项通过；真实拆接／卸载／重启、玩家布局、平衡和正式资产待验 |
-| 8.7 Living 网络 | 8.6 | 将营养输送接入已有膜墙，再增一个可见用途组件 | 连接变更预算、循环网络、断供、拆除与保护；不保存卸载对象引用 |
+| [~] 8.7 Living 网络 | 8.6 | 已将有界 Hematic 输送接入既有膜墙，Actuator 作为第二个可见耗液用途；边界见 [ADR 0006](decisions/0006-living-network-membrane-contract.md) | Java 17 `test` 与专服 GameTest 33 项通过；真实布局、循环、长时间卸载／重启、断供、拆除、保护、平衡和正式资产待验 |
 | 8.8 Enzymatic | 8.6 | 一台处理组件、一条催化或废料再利用配方 | 容器和流体守恒、配方 reload、停机续跑与工业用途 |
 | 8.9 Compatibility | 8.2、8.5 | 独立玩家状态、一种可逆适应途径、局部免疫响应与 Stoneblight 表现 | 不建立反向无限感染；不破坏机器；死亡／重连／维度切换与多人隔离 |
 | 8.10 Neural | 8.7–8.8 | 一个传感器、信号传输和一个执行端 | 更新预算、反馈环、卸载无悬挂网络；可关闭，不依赖外部科技 |

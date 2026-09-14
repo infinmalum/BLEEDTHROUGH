@@ -3,6 +3,7 @@ package com.bleedthrough.meatscape.gametest;
 import com.bleedthrough.meatscape.Meatscape;
 import com.bleedthrough.meatscape.architecture.RegenerativeMembraneBlock;
 import com.bleedthrough.meatscape.architecture.RegenerativeMembraneBlockEntity;
+import com.bleedthrough.meatscape.bioindustry.ArteryBlockEntity;
 import com.bleedthrough.meatscape.coherence.evolution.EvolutionCandidate;
 import com.bleedthrough.meatscape.coherence.rollback.RestorationSource;
 import com.bleedthrough.meatscape.coherence.rollback.RollbackResult;
@@ -127,6 +128,30 @@ public final class LivingArchitectureGameTests {
             ChunkSafetyService.get(level, pos).clearRestoration(pos);
             level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase87LivingNetwork")
+    public static void arteryFeedsMembraneBoundedlyAndPersistsItsBuffer(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos arteryPos = helper.absolutePos(new BlockPos(2, 2, 2));
+        BlockPos membranePos = arteryPos.east();
+        level.setBlockAndUpdate(arteryPos, MeatscapeBlocks.ARTERY.get().defaultBlockState()
+                .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, Direction.EAST));
+        level.setBlockAndUpdate(membranePos, MeatscapeBlocks.REGENERATIVE_MEMBRANE.get().defaultBlockState());
+        var artery = (ArteryBlockEntity) level.getBlockEntity(arteryPos);
+        var membrane = (RegenerativeMembraneBlockEntity) level.getBlockEntity(membranePos);
+        helper.assertTrue(artery != null && membrane != null, "Living network BlockEntity missing");
+        artery.addHematic(300);
+        for (int tick = 0; tick < 5; tick++) ArteryBlockEntity.serverTick(level, arteryPos, level.getBlockState(arteryPos), artery);
+        helper.assertTrue(artery.hematic() == 50 && membrane.nutrition() == 1, "Artery transfer did not conserve the 250 mB nutrition cost");
+        CompoundTag saved = membrane.saveWithoutMetadata();
+        var reloaded = new RegenerativeMembraneBlockEntity(membranePos, level.getBlockState(membranePos));
+        reloaded.load(saved);
+        helper.assertTrue(reloaded.nutrition() == 1, "Membrane nutrition did not survive serialization");
+        level.removeBlock(membranePos, false);
+        ArteryBlockEntity.serverTick(level, arteryPos, level.getBlockState(arteryPos), artery);
+        helper.assertTrue(artery.hematic() == 50, "Disconnected network moved or lost Hematic volume");
         helper.succeed();
     }
 
