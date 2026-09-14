@@ -5,6 +5,10 @@ import com.bleedthrough.meatscape.world.maw.MawDimensions;
 import com.bleedthrough.meatscape.world.maw.NutrientMoundBlock;
 import com.bleedthrough.meatscape.core.registry.MeatscapeBlocks;
 import com.bleedthrough.meatscape.core.registry.MeatscapeItems;
+import com.bleedthrough.meatscape.bioindustry.ArteryBlockEntity;
+import com.bleedthrough.meatscape.bioindustry.HeartPumpBlockEntity;
+import com.bleedthrough.meatscape.bioindustry.HematicActuatorBlock;
+import com.bleedthrough.meatscape.bioindustry.HematicActuatorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -63,6 +67,25 @@ public final class MawGameTests {
     public static void vascularCanopyFeatureIsRegistered(GameTestHelper helper) {
         helper.assertTrue(ForgeRegistries.FEATURES.containsKey(ResourceLocation.fromNamespaceAndPath(Meatscape.MOD_ID, "vascular_canopy")),
                 "Vascular Canopy feature was not registered");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", batch = "phase86Hematic")
+    public static void hematicCircuitTransfersBoundedlyAndConsumesAtLoad(GameTestHelper helper) {
+        var level = helper.getLevel();
+        BlockPos pumpPos = helper.absolutePos(new BlockPos(2, 2, 2));
+        BlockPos arteryPos = pumpPos.east(); BlockPos actuatorPos = arteryPos.east();
+        level.setBlockAndUpdate(pumpPos, MeatscapeBlocks.HEART_PUMP.get().defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, net.minecraft.core.Direction.EAST));
+        level.setBlockAndUpdate(arteryPos, MeatscapeBlocks.ARTERY.get().defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, net.minecraft.core.Direction.EAST));
+        level.setBlockAndUpdate(actuatorPos, MeatscapeBlocks.HEMATIC_ACTUATOR.get().defaultBlockState());
+        var pump = (HeartPumpBlockEntity) level.getBlockEntity(pumpPos); var artery = (ArteryBlockEntity) level.getBlockEntity(arteryPos); var actuator = (HematicActuatorBlockEntity) level.getBlockEntity(actuatorPos);
+        helper.assertTrue(pump != null && artery != null && actuator != null, "Hematic node BlockEntity missing");
+        pump.addHematic(HeartPumpBlockEntity.TISSUE_YIELD);
+        HeartPumpBlockEntity.serverTick(level, pumpPos, level.getBlockState(pumpPos), pump);
+        ArteryBlockEntity.serverTick(level, arteryPos, level.getBlockState(arteryPos), artery);
+        HematicActuatorBlockEntity.serverTick(level, actuatorPos, level.getBlockState(actuatorPos), actuator);
+        helper.assertTrue(pump.hematic() == 200 && artery.hematic() == 0 && actuator.hematic() == 40, "Hematic volume was not conserved across the bounded circuit");
+        helper.assertTrue(level.getBlockState(actuatorPos).getValue(HematicActuatorBlock.POWERED), "Actuator did not activate after consuming Hematic fluid");
         helper.succeed();
     }
 }

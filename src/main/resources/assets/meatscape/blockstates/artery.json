@@ -1,0 +1,1 @@
+{"variants":{"facing=north":{"model":"meatscape:block/artery"},"facing=east":{"model":"meatscape:block/artery","y":90},"facing=south":{"model":"meatscape:block/artery","y":180},"facing=west":{"model":"meatscape:block/artery","y":270}}}

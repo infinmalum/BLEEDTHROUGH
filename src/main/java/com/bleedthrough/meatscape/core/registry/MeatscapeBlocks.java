@@ -6,6 +6,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import com.bleedthrough.meatscape.bioindustry.HeartPumpBlock;
+import com.bleedthrough.meatscape.bioindustry.ArteryBlock;
+import com.bleedthrough.meatscape.bioindustry.HematicActuatorBlock;
 import com.bleedthrough.meatscape.coherence.rift.RiftCoreBlock;
 import com.bleedthrough.meatscape.architecture.RegenerativeMembraneBlock;
 import com.bleedthrough.meatscape.world.maw.MawGatewayBlock;
@@ -43,6 +45,10 @@ public final class MeatscapeBlocks {
                     .lightLevel(state -> state.getValue(RiftCoreBlock.ACTIVE) ? 7 : 0)));
     public static final RegistryObject<Block> HEART_PUMP = block("heart_pump", () -> new HeartPumpBlock(
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0F).lightLevel(state -> 3)));
+    public static final RegistryObject<Block> ARTERY = block("artery", () -> new ArteryBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.0F)));
+    public static final RegistryObject<Block> HEMATIC_ACTUATOR = block("hematic_actuator", () -> new HematicActuatorBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE).strength(2.0F).lightLevel(state -> state.getValue(HematicActuatorBlock.POWERED) ? 7 : 0)));
     public static final RegistryObject<Block> REGENERATIVE_MEMBRANE = block("regenerative_membrane", () ->
             new RegenerativeMembraneBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PINK)
                     .strength(2.5F, 6.0F)));
